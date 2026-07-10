@@ -1,0 +1,53 @@
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+
+// 같은 원인으로 판정된 에러들의 묶음.
+// TypeError가 1,000번 나도 그룹은 1개, count가 1000이 된다.
+// 알람은 이벤트가 아니라 그룹 기준으로 울린다. 이게 알람 스팸을 막는 핵심 구조다.
+@Entity('error_groups')
+// 같은 프로젝트 안에서 fingerprint는 하나뿐이어야 한다.
+// 컨슈머 두 개가 동시에 같은 에러를 처리해도 DB가 중복 생성을 막아준다.
+@Index(['projectId', 'fingerprint'], { unique: true })
+export class ErrorGroup {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column()
+  projectId: number;
+
+  // 스택트레이스에서 뽑은 지문. 계산 방법은 grouping/fingerprint.ts 참조
+  @Column({ length: 40 })
+  fingerprint: string;
+
+  // 에러 클래스 이름 (예: TypeError)
+  @Column({ length: 200 })
+  name: string;
+
+  // 이 그룹을 처음 만든 이벤트의 메시지. 목록 화면에서 대표로 보여준다
+  @Column({ length: 2000 })
+  message: string;
+
+  // 스택 최상단의 우리 코드 위치 (예: src/users/users.service.ts). 어디가 터졌는지 한눈에 보기용
+  @Column({ length: 500, default: '' })
+  topFrame: string;
+
+  @Column({ length: 20, default: 'open' }) // open | resolved
+  status: string;
+
+  @Column({ default: 0 })
+  count: number;
+
+  @Column()
+  firstSeenAt: Date;
+
+  @Column()
+  lastSeenAt: Date;
+
+  @CreateDateColumn()
+  createdAt: Date;
+}

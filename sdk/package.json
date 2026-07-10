@@ -1,0 +1,37 @@
+{
+  "name": "kanari",
+  "version": "0.1.0",
+  "description": "Winston transport for Kanari - 에러를 카나리 서버로 보내는 SDK",
+  "license": "MIT",
+  "author": "Changho Lee",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dlckdgh0523-lgtm/Kanari-ai"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "winston",
+    "transport",
+    "error-tracking",
+    "monitoring"
+  ],
+  "dependencies": {
+    "winston-transport": "^4.9.0"
+  },
+  "peerDependencies": {
+    "winston": ">=3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0",
+    "winston": "^3.17.0"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "kanari",
+  "version": "0.1.0",
+  "description": "카나리 - 사람보다 먼저 장애를 감지하는 에러 관제 서비스",
+  "private": true,
+  "scripts": {
+    "build": "nest build",
+    "start:api": "nest start",
+    "start:api:dev": "nest start --watch",
+    "start:worker": "ts-node -r tsconfig-paths/register src/worker.ts",
+    "format": "prettier --write \"src/**/*.ts\""
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/config": "^4.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/platform-express": "^11.0.0",
+    "@nestjs/typeorm": "^11.0.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
+    "kafkajs": "^2.2.4",
+    "mysql2": "^3.11.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1",
+    "typeorm": "^0.3.20"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^11.0.0",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "prettier": "^3.3.0",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.6.0"
+  }
+}

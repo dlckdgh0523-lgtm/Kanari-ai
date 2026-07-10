@@ -1,0 +1,47 @@
+import {
+  Injectable,
+  OnApplicationShutdown,
+  OnModuleInit,
+} from '@nestjs/common';
+import { Kafka, Producer } from 'kafkajs';
+import { IngestEventDto } from './dto/ingest.dto';
+
+// 수집된 이벤트가 흐르는 토픽 이름. 컨슈머(worker)도 같은 상수를 쓴다
+export const RAW_EVENTS_TOPIC = 'kanari.events.raw';
+
+// 인입 API의 역할은 하나뿐이다: 받아서 Kafka에 넣는다.
+// 그룹핑 같은 무거운 일을 여기서 하지 않는 이유는,
+// 이벤트가 폭주해도 API는 빠르게 응답하고 처리는 컨슈머가 자기 속도로 하게 하기 위해서다.
+@Injectable()
+export class IngestService implements OnModuleInit, OnApplicationShutdown {
+  private producer: Producer;
+
+  async onModuleInit() {
+    const kafka = new Kafka({
+      clientId: 'kanari-api',
+      brokers: [process.env.KAFKA_BROKER ?? 'localhost:9092'],
+    });
+    this.producer = kafka.producer();
+    await this.producer.connect();
+  }
+
+  async onApplicationShutdown() {
+    await this.producer.disconnect();
+  }
+
+  async publish(projectId: number, events: IngestEventDto[]) {
+    await this.producer.send({
+      topic: RAW_EVENTS_TOPIC,
+      messages: events.map((event) => ({
+        // key를 projectId로 주면 같은 프로젝트의 이벤트는 같은 파티션으로 들어가
+        // 프로젝트 안에서는 발생 순서가 유지된다
+        key: String(projectId),
+        value: JSON.stringify({
+          projectId,
+          event,
+          receivedAt: new Date().toISOString(),
+        }),
+      })),
+    });
+  }
+}

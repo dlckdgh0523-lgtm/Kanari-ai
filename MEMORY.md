@@ -64,14 +64,18 @@ Node.js 서비스용 에러 관제 SaaS. SDK(Winston transport)로 에러를 모
 - [x] PRD.md 작성 완료
 - [x] Phase 0: kanari/ 스캐폴딩, docker-compose(MySQL+Kafka KRaft+Kafka UI), docs/logging-standard.md
 - [x] Phase 1 코드: 프로젝트 등록·API 키(해시 저장) → POST /ingest → Kafka → 그룹핑 워커(fingerprint) → MySQL → 신규 그룹 Discord 알람 → 조회 API. npm install + nest build 통과
-- [ ] 실행 검증(E2E): Docker Desktop 미설치라 아직 못 돌림 ← 다음 세션 첫 작업 (README의 손 테스트 순서대로)
-- [ ] Phase 2: Winston transport SDK (npm 패키지)
+- [x] Phase 2 코드: sdk/ Winston 커스텀 transport (배치 전송, fire-and-forget, 타임아웃 3초). tsc 빌드 통과
+- [x] examples/sdk-demo.js: SDK 동작 확인 시나리오 4종 (같은 에러 반복, 가변 메시지 묶임, warn 전송)
+- [x] GitHub 푸시 완료: github.com/dlckdgh0523-lgtm/Kanari-ai (main)
+- [ ] 실행 검증(E2E): Docker Desktop 설치 중 ← 완료되면 README 손 테스트 + sdk-demo 실행이 첫 작업
+- [ ] npm 배포: 창호의 npm 계정 필요. sdk/ 에서 npm publish (패키지명 kanari)
+- [ ] Phase 3: 급증 탐지 워치독 + 합성 테스트
 - 창호 학습 순서: kanari/README.md의 폴더 구조 표 순서대로 (1번 fingerprint.ts부터)
 - 참고 자료: 이 폴더의 카카오톡 스크린샷 11장 (RAG 아키텍처 8종, Claude 디자인 스킬 스택, 장애 알림 실무 사례, AX 지식그래프, B2B 대시보드 디자인 프롬프트)
 
 ## 관련 링크
 
-- GitHub: github.com/dlckdgh0523-lgtm (리포 생성 예정)
+- GitHub: github.com/dlckdgh0523-lgtm/Kanari-ai
 - 참고 리포: github.com/dlckdgh0523-lgtm/AI- (쇼핑 컨시어지 — 재사용할 패턴: 모델 다운시프트, 인용 검증, A/B 하네스)
 - 진로나침반: github.com/dlckdgh0523-lgtm/jinro-backend
 - 블로그(회고 올릴 곳): blog.naver.com/moodie_lv3

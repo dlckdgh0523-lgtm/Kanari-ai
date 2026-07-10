@@ -1,12 +1,12 @@
 {
   "name": "kanari",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Winston transport for Kanari - 에러를 카나리 서버로 보내는 SDK",
   "license": "MIT",
   "author": "Changho Lee",
   "repository": {
     "type": "git",
-    "url": "https://github.com/dlckdgh0523-lgtm/Kanari-ai"
+    "url": "git+https://github.com/dlckdgh0523-lgtm/Kanari-ai.git"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

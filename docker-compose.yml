@@ -25,7 +25,9 @@ services:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:19092,CONTROLLER://0.0.0.0:9093,EXTERNAL://0.0.0.0:9092
+      # 호스트를 비우면(//:포트) 모든 인터페이스에 바인딩된다. 0.0.0.0으로 적으면
+      # 이 이미지의 설정 검증이 기동을 거부한다 (advertised 검증에 걸림)
+      KAFKA_LISTENERS: PLAINTEXT://:19092,CONTROLLER://:9093,EXTERNAL://:9092
       # 컨테이너 안(kafka:19092)과 호스트(localhost:9092) 양쪽에서 접속할 수 있게 리스너를 나눈다
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:19092,EXTERNAL://localhost:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT

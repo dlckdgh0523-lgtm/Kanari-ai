@@ -15,6 +15,16 @@ async function bootstrap() {
     brokers: [process.env.KAFKA_BROKER ?? 'localhost:9092'],
   });
 
+  // 토픽이 없는 상태에서 구독부터 하면 UNKNOWN_TOPIC_OR_PARTITION으로 죽는다.
+  // 자동 생성에 기대지 않고 시작할 때 직접 만든다.
+  // 운영 클러스터는 보통 자동 생성을 꺼두기 때문에 이 방식이 어디서든 동작한다
+  const admin = kafka.admin();
+  await admin.connect();
+  await admin.createTopics({
+    topics: [{ topic: RAW_EVENTS_TOPIC, numPartitions: 3 }], // 이미 있으면 그냥 넘어간다
+  });
+  await admin.disconnect();
+
   // groupId가 같은 컨슈머들은 파티션을 나눠 갖는다.
   // 나중에 워커를 2대 띄우면 Kafka가 알아서 절반씩 분배해 준다
   const consumer = kafka.consumer({ groupId: 'kanari-grouping' });

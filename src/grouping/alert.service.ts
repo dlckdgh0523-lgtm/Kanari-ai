@@ -117,12 +117,18 @@ export class AlertService {
       project?.discordWebhookUrl || process.env.DISCORD_WEBHOOK_URL;
     if (!webhookUrl) return;
 
+    // 프로젝트명을 제목에 박는다. 여러 서비스를 한 채널로 받는 사람이
+    // 제목만 보고 어느 서비스의 알람인지 구분할 수 있어야 한다
+    const title = project?.name
+      ? embed.title.replace(/^(\S+)\s/, `$1 [${project.name}] `)
+      : embed.title;
+
     try {
       const res = await fetch(webhookUrl, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
-          embeds: [{ ...embed, footer: { text: project?.name ?? '' } }],
+          embeds: [{ ...embed, title, footer: { text: project?.name ?? '' } }],
         }),
         signal: AbortSignal.timeout(5000),
       });

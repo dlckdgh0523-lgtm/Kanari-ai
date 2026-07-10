@@ -1,4 +1,4 @@
-# PRD — 파수꾼 (가칭) · 에러 관제 SaaS
+﻿# PRD — 파수꾼 (가칭) · 에러 관제 SaaS
 
 > 미니 Sentry + 미니 BetterStack + AI 장애 조사관.
 > 어떤 Node.js 서비스든 SDK 한 줄로 붙이면, 에러를 모아 묶고, 능동적으로 감시하고, 장애가 나면 AI가 1차 조사까지 끝낸 리포트와 함께 알람을 울려주는 서비스.
@@ -115,7 +115,10 @@
 - [ ] Terraform: ECS Fargate 3개 서비스(api/consumer/synthetic) + ALB + ECR
 - [ ] 무중단 검증: 배포 중 부하(autocannon) 걸고 5xx 0건 측정 (수치 확보)
 
-### Phase 7 — 대시보드 UI (0.5~1주)
+### Phase 7 — 웹 콘솔 + 대시보드 UI (1~1.5주)
+- [ ] 회원가입/로그인 (SaaS의 얼굴: 가입 → 프로젝트 생성 → 키 발급 → 설치 가이드 → 대시보드)
+- [ ] 프로젝트 생성·API 키 발급 화면, Discord 웹훅 설정 화면
+- [ ] SDK 설치 가이드 페이지 (npm install kanari + 코드 3줄)
 - [ ] Claude 디자인 스킬 스택 순서로: frontend-design → taste-skill → animate → playwright-mcp
 - [ ] 디자인 시스템: 딥 네이비 B2B 팔레트 (수집한 Threads 프롬프트 활용)
 
@@ -151,3 +154,4 @@
 4. 200이 떠도 장애인 걸 어떻게 아나 → 합성 테스트
 5. 알람 임계치는 → 기준선 대비 급증, 튜닝 기록
 6. 멀티 에이전트가 정말 나은가 → A/B 측정 결과로 답변 (정직하게)
+

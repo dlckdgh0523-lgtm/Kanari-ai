@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProjectsModule } from './projects/projects.module';
 import { IngestModule } from './ingest/ingest.module';
@@ -10,6 +12,10 @@ import { ChecksModule } from './checks/checks.module';
   imports: [
     // .env 파일을 읽어 process.env 로 올려준다. isGlobal이라 다른 모듈에서 import 불필요
     ConfigModule.forRoot({ isGlobal: true }),
+
+    // IP당 분당 요청 수 제한. 키를 훔치지 못한 공격자가 무차별 요청으로
+    // 서버를 괴롭히거나(DoS), 키를 무작위 대입하는 것을 느리게 만든다
+    ThrottlerModule.forRoot({ throttlers: [{ ttl: 60_000, limit: 120 }] }),
 
     TypeOrmModule.forRoot({
       type: 'mysql',
@@ -27,6 +33,10 @@ import { ChecksModule } from './checks/checks.module';
     IngestModule,
     EventsModule,
     ChecksModule,
+  ],
+  providers: [
+    // 레이트리밋을 모든 라우트에 기본 적용한다
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],
 })
 export class AppModule {}

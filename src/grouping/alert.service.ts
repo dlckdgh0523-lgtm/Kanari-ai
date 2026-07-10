@@ -11,6 +11,9 @@ import { Project } from '../projects/project.entity';
 // 원칙 1: 알람 발송이 실패해도 본 처리 흐름을 막지 않는다 (throw 하지 않고 로그만)
 // 원칙 2: 알람은 판단에 필요한 정보(무엇이, 어디서, 얼마나)를 한 화면에 담는다.
 //         새벽에 알람을 받은 사람이 노트북을 열지 말지 이걸 보고 결정한다
+//
+// 포맷은 Discord 임베드를 쓴다. 왼쪽 색상 바로 심각도가 한눈에 구분되고
+// (노랑=신규, 빨강=급증/실패, 초록=회복), 필드 구조라 텍스트 덩어리보다 읽기 쉽다
 @Injectable()
 export class AlertService {
   private readonly logger = new Logger(AlertService.name);
@@ -21,62 +24,94 @@ export class AlertService {
   ) {}
 
   async notifyNewGroup(group: ErrorGroup, similar: ErrorGroup[] = []) {
-    const lines: (string | false)[] = [
-      `🐤 새로운 에러가 발견됐습니다 (그룹 #${group.id})`,
-      '```',
-      `${group.name}: ${group.message.slice(0, 300)}`,
-      group.topFrame ? `위치: ${group.topFrame}` : '',
-      `첫 발생: ${group.firstSeenAt.toISOString()}`,
-      '```',
-    ];
+    const fields: { name: string; value: string }[] = [];
+
+    if (group.topFrame) {
+      fields.push({ name: '위치', value: '`' + group.topFrame + '`' });
+    }
 
     // 과거에 해결한 비슷한 장애가 있으면 해결 메모를 함께 보여준다.
     // 이게 있으면 조사를 처음부터 다시 시작하지 않아도 된다
     for (const past of similar) {
-      lines.push(
-        `📚 비슷한 과거 장애 #${past.id}: ${past.message.slice(0, 120)}`,
-        `   해결 메모: ${(past.resolveNote ?? '').slice(0, 200)}`,
-      );
+      fields.push({
+        name: `📚 비슷한 과거 장애 #${past.id}`,
+        value:
+          past.message.slice(0, 150) +
+          '\n**해결:** ' +
+          (past.resolveNote ?? '').slice(0, 300),
+      });
     }
 
-    await this.send(group.projectId, lines);
+    await this.send(group.projectId, {
+      title: `🐤 새로운 에러 · 그룹 #${group.id}`,
+      color: 0xf6c744, // 노랑: 새로 등장, 아직 규모는 모름
+      description:
+        '```' + `${group.name}: ${group.message.slice(0, 400)}` + '```',
+      fields,
+      timestamp: group.firstSeenAt.toISOString(),
+    });
   }
 
   async notifySpike(group: ErrorGroup, recentCount: number, baseline: number) {
-    await this.send(group.projectId, [
-      `📈 에러가 급증하고 있습니다 (그룹 #${group.id})`,
-      '```',
-      `${group.name}: ${group.message.slice(0, 300)}`,
-      `최근 5분: ${recentCount}건 (평소 5분당 약 ${baseline}건)`,
-      group.topFrame ? `위치: ${group.topFrame}` : '',
-      '```',
-    ]);
+    await this.send(group.projectId, {
+      title: `📈 에러 급증 · 그룹 #${group.id}`,
+      color: 0xef4444, // 빨강: 지금 커지고 있는 문제
+      description:
+        '```' + `${group.name}: ${group.message.slice(0, 400)}` + '```',
+      fields: [
+        {
+          name: '규모',
+          value: `최근 5분 **${recentCount}건** (평소 5분당 약 ${baseline}건)`,
+        },
+        ...(group.topFrame
+          ? [{ name: '위치', value: '`' + group.topFrame + '`' }]
+          : []),
+      ],
+      timestamp: new Date().toISOString(),
+    });
   }
 
   async notifyCheckFailed(
     check: SyntheticCheck,
     result: { statusCode?: number; error?: string; ms: number },
   ) {
-    await this.send(check.projectId, [
-      `🔴 합성 테스트 연속 실패: ${check.name}`,
-      '```',
-      `${check.method} ${check.url}`,
-      result.statusCode !== undefined
-        ? `응답: ${result.statusCode} (기대: ${check.expectedStatus})`
-        : `연결 실패: ${result.error}`,
-      `소요: ${result.ms}ms`,
-      '```',
-    ]);
+    await this.send(check.projectId, {
+      title: `🔴 합성 테스트 연속 실패 · ${check.name}`,
+      color: 0xef4444,
+      description: '`' + `${check.method} ${check.url}` + '`',
+      fields: [
+        {
+          name: '결과',
+          value:
+            result.statusCode !== undefined
+              ? `응답 **${result.statusCode}** (기대 ${check.expectedStatus}) · ${result.ms}ms`
+              : `연결 실패: ${result.error} · ${result.ms}ms`,
+        },
+      ],
+      timestamp: new Date().toISOString(),
+    });
   }
 
   async notifyCheckRecovered(check: SyntheticCheck) {
-    await this.send(check.projectId, [
-      `🟢 회복됐습니다: ${check.name} (${check.method} ${check.url})`,
-    ]);
+    await this.send(check.projectId, {
+      title: `🟢 회복 · ${check.name}`,
+      color: 0x10b981,
+      description: '`' + `${check.method} ${check.url}` + '`',
+      timestamp: new Date().toISOString(),
+    });
   }
 
   // 공통 발송부. 프로젝트 전용 웹훅이 있으면 그걸, 없으면 .env의 기본 웹훅을 쓴다
-  private async send(projectId: number, lines: (string | false)[]) {
+  private async send(
+    projectId: number,
+    embed: {
+      title: string;
+      color: number;
+      description?: string;
+      fields?: { name: string; value: string }[];
+      timestamp?: string;
+    },
+  ) {
     const project = await this.projectRepo.findOneBy({ id: projectId });
     const webhookUrl =
       project?.discordWebhookUrl || process.env.DISCORD_WEBHOOK_URL;
@@ -86,7 +121,9 @@ export class AlertService {
       const res = await fetch(webhookUrl, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ content: lines.filter(Boolean).join('\n') }),
+        body: JSON.stringify({
+          embeds: [{ ...embed, footer: { text: project?.name ?? '' } }],
+        }),
         signal: AbortSignal.timeout(5000),
       });
       if (!res.ok) {

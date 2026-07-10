@@ -1,4 +1,4 @@
-# MEMORY — 파수꾼 (가칭) 프로젝트 컨텍스트
+﻿# MEMORY — 파수꾼 (가칭) 프로젝트 컨텍스트
 
 > Claude Code 세션이 바뀌어도 이 파일을 먼저 읽으면 맥락이 이어진다.
 > 규칙: 결정이 바뀌면 이 파일을 즉시 갱신한다. 오래된 정보를 남기지 않는다.
@@ -69,9 +69,11 @@ Node.js 서비스용 에러 관제 SaaS. SDK(Winston transport)로 에러를 모
 - [x] GitHub 푸시 완료: github.com/dlckdgh0523-lgtm/Kanari-ai (main)
 - [x] 실행 검증(E2E) 통과 (26-07-10): 같은 에러 2회 → 그룹 1개 count 2 / 주문번호 다른 메시지 → 정규화로 같은 그룹 / SDK 데모(행 번호 달라도 같은 그룹, 기존 그룹 합류 count 2→4, warn 전송) / 잘못된 키 401
 - 트러블슈팅 기록: ① apache/kafka 이미지는 리스너에 0.0.0.0을 쓰면 기동 거부 → 호스트 생략형(//:포트)으로 해결 ② 토픽 없이 구독하면 UNKNOWN_TOPIC_OR_PARTITION 크래시 → 워커 시작 시 admin으로 명시적 생성 (블로그 글감)
-- [ ] Discord 웹훅: .env의 DISCORD_WEBHOOK_URL 비어 있음 ← 창호가 웹훅 만들어 채우면 신규 그룹 알람 동작
+- [x] Discord 웹훅 연결 완료. 채팅에 URL이 노출됐으므로 프로젝트 마무리 시점에 재발급 권장
 - [ ] npm 배포: 창호의 npm 계정 필요. sdk/ 에서 npm publish (패키지명 kanari)
-- [ ] Phase 3: 급증 탐지 워치독 + 합성 테스트 ← 다음 작업
+- [x] Phase 3 완료 (26-07-10): 워치독(1분 주기) 급증 탐지 = 최근 5분 10건 이상 AND 기준선 3배, 30분 쿨다운 / 합성 테스트 = 등록 URL 주기 호출, 연속 2회 실패 시 알람, 회복 알림, run-all(배포 스모크 API) / 알람 4종(신규·급증·실패·회복) Discord 발송 검증 완료
+- [ ] Phase 3 미검증 항목: 회복(🟢) 알림은 로직만 있고 E2E 미확인 (jinro 장착 후 자연 검증 예정)
+- [ ] Phase 4: 해결 메모 + Qdrant 유사 장애 검색(RAG) + AI 조사 에이전트 ← 다음 작업
 - 창호 학습 순서: kanari/README.md의 폴더 구조 표 순서대로 (1번 fingerprint.ts부터)
 - 참고 자료: 상위 폴더의 카카오톡 스크린샷 11장 (RAG 아키텍처 8종, Claude 디자인 스킬 스택, 장애 알림 실무 사례, AX 지식그래프, B2B 대시보드 디자인 프롬프트)
 - 로컬 경로 변경됨: C:\Users\mszza\Desktop\창호\kanari\kanari (구 새 폴더\kanari)
@@ -82,3 +84,4 @@ Node.js 서비스용 에러 관제 SaaS. SDK(Winston transport)로 에러를 모
 - 참고 리포: github.com/dlckdgh0523-lgtm/AI- (쇼핑 컨시어지 — 재사용할 패턴: 모델 다운시프트, 인용 검증, A/B 하네스)
 - 진로나침반: github.com/dlckdgh0523-lgtm/jinro-backend
 - 블로그(회고 올릴 곳): blog.naver.com/moodie_lv3
+

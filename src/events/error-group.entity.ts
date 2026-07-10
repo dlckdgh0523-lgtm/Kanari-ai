@@ -48,6 +48,10 @@ export class ErrorGroup {
   @Column()
   lastSeenAt: Date;
 
+  // 마지막으로 급증 알람을 보낸 시각. 워치독이 30분 쿨다운 판단에 쓴다
+  @Column({ type: 'datetime', nullable: true })
+  lastSpikeAlertAt: Date | null;
+
   @CreateDateColumn()
   createdAt: Date;
 }

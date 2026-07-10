@@ -76,7 +76,9 @@ Node.js 서비스용 에러 관제 SaaS. SDK(Winston transport)로 에러를 모
 - [x] Phase 3.5 보안+셀프 모니터링 (26-07-10): helmet / 바디 256kb 제한 / IP당 분당 120회 레이트리밋 / 전역 예외 필터(500 스택 비노출, express 4xx 구분) / 셀프 프로젝트(kanari-self)로 자기 에러 수집(루프 가드: /ingest 경로 제외). E2E: 413·429·헤더·Kafka 중단 시 클린 500 확인. 한계 기록: 인프라 전체 장애는 셀프 보고도 죽음 → 합성테스트+Grafana 영역
 - 결정: GitHub 범용 코드 리뷰 기능은 안 만든다 (별개 제품, 타깃 불일치). 대신 Phase 4 조사 에이전트가 연결된 저장소에서 topFrame 위치의 코드를 가져와 원인 분석에 사용 + 알람에 GitHub 파일 링크
 - npm publish는 403 (2FA 필요) → 창호가 npmjs.com에서 2FA 활성화 후 재시도
-- [ ] Phase 4: 해결 메모 + Qdrant 유사 장애 검색(RAG) + AI 조사 에이전트(GitHub 코드 컨텍스트 포함) ← 다음 작업. Anthropic API 키 필요
+- [x] Phase 4-a (26-07-10): 해결 메모(resolve + note = 지식베이스 씨앗) + 유사 장애 검색 v1(키워드 점수: 같은 에러명 +3, 같은 위치 +4, 단어 겹침 최대 +4, 임계 4점, 최대 2건) → 신규 에러 알람에 과거 해결 메모 첨부. Qdrant 컨테이너 추가(v1.13.4, :6333). E2E: 그룹 #10 알람에 #1 메모 첨부 확인
+- 트러블슈팅 추가: Git Bash curl은 한글을 CP949로 보내 저장이 깨짐 → 서버는 정상(node fetch UTF-8 왕복 검증). 한글 테스트는 node fetch로
+- [ ] Phase 4-b: Qdrant 벡터 검색 결합(하이브리드) + AI 조사 에이전트(GitHub 코드 컨텍스트) ← Anthropic API 키 대기 중
 - 창호 학습 순서: kanari/README.md의 폴더 구조 표 순서대로 (1번 fingerprint.ts부터)
 - 참고 자료: 상위 폴더의 카카오톡 스크린샷 11장 (RAG 아키텍처 8종, Claude 디자인 스킬 스택, 장애 알림 실무 사례, AX 지식그래프, B2B 대시보드 디자인 프롬프트)
 - 로컬 경로 변경됨: C:\Users\mszza\Desktop\창호\kanari\kanari (구 새 폴더\kanari)
@@ -87,6 +89,7 @@ Node.js 서비스용 에러 관제 SaaS. SDK(Winston transport)로 에러를 모
 - 참고 리포: github.com/dlckdgh0523-lgtm/AI- (쇼핑 컨시어지 — 재사용할 패턴: 모델 다운시프트, 인용 검증, A/B 하네스)
 - 진로나침반: github.com/dlckdgh0523-lgtm/jinro-backend
 - 블로그(회고 올릴 곳): blog.naver.com/moodie_lv3
+
 
 
 

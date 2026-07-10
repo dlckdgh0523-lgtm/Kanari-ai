@@ -9,6 +9,7 @@ import { ErrorGroup } from '../events/error-group.entity';
 import { Project } from '../projects/project.entity';
 import { AlertService } from './alert.service';
 import { GroupingService } from './grouping.service';
+import { SimilarIncidentsService } from './similar-incidents.service';
 import { WatchdogService } from './watchdog.service';
 
 // 컨슈머 프로세스 전용 모듈. HTTP 컨트롤러가 없다.
@@ -31,6 +32,12 @@ import { WatchdogService } from './watchdog.service';
     ScheduleModule.forRoot(),
     TypeOrmModule.forFeature([ErrorGroup, ErrorEvent, Project, SyntheticCheck]),
   ],
-  providers: [GroupingService, AlertService, WatchdogService, CheckRunnerService],
+  providers: [
+    GroupingService,
+    AlertService,
+    WatchdogService,
+    CheckRunnerService,
+    SimilarIncidentsService,
+  ],
 })
 export class WorkerModule {}

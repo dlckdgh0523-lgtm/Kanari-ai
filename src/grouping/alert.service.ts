@@ -20,15 +20,26 @@ export class AlertService {
     private readonly projectRepo: Repository<Project>,
   ) {}
 
-  async notifyNewGroup(group: ErrorGroup) {
-    await this.send(group.projectId, [
+  async notifyNewGroup(group: ErrorGroup, similar: ErrorGroup[] = []) {
+    const lines: (string | false)[] = [
       `🐤 새로운 에러가 발견됐습니다 (그룹 #${group.id})`,
       '```',
       `${group.name}: ${group.message.slice(0, 300)}`,
       group.topFrame ? `위치: ${group.topFrame}` : '',
       `첫 발생: ${group.firstSeenAt.toISOString()}`,
       '```',
-    ]);
+    ];
+
+    // 과거에 해결한 비슷한 장애가 있으면 해결 메모를 함께 보여준다.
+    // 이게 있으면 조사를 처음부터 다시 시작하지 않아도 된다
+    for (const past of similar) {
+      lines.push(
+        `📚 비슷한 과거 장애 #${past.id}: ${past.message.slice(0, 120)}`,
+        `   해결 메모: ${(past.resolveNote ?? '').slice(0, 200)}`,
+      );
+    }
+
+    await this.send(group.projectId, lines);
   }
 
   async notifySpike(group: ErrorGroup, recentCount: number, baseline: number) {

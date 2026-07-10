@@ -52,6 +52,14 @@ export class ErrorGroup {
   @Column({ type: 'datetime', nullable: true })
   lastSpikeAlertAt: Date | null;
 
+  // 해결하면서 남기는 원인/조치 메모. 이 메모가 쌓이면
+  // 다음에 비슷한 에러가 왔을 때 "지난번엔 이렇게 고쳤다"를 알려주는 지식베이스가 된다
+  @Column({ type: 'text', nullable: true })
+  resolveNote: string | null;
+
+  @Column({ type: 'datetime', nullable: true })
+  resolvedAt: Date | null;
+
   @CreateDateColumn()
   createdAt: Date;
 }

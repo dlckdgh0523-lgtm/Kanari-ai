@@ -6,6 +6,7 @@ import { ErrorGroup } from '../events/error-group.entity';
 import { IngestEventDto } from '../ingest/dto/ingest.dto';
 import { AlertService } from './alert.service';
 import { computeFingerprint } from './fingerprint';
+import { SimilarIncidentsService } from './similar-incidents.service';
 
 // Kafka에서 꺼낸 이벤트 한 건을 처리하는 흐름:
 // 1) 지문 계산  2) 그룹 찾기(없으면 생성 + 알람)  3) 카운트 갱신  4) 원본 이벤트 저장
@@ -19,6 +20,7 @@ export class GroupingService {
     @InjectRepository(ErrorEvent)
     private readonly eventRepo: Repository<ErrorEvent>,
     private readonly alertService: AlertService,
+    private readonly similarIncidents: SimilarIncidentsService,
   ) {}
 
   async handleEvent(projectId: number, event: IngestEventDto) {
@@ -43,8 +45,15 @@ export class GroupingService {
           firstSeenAt: occurredAt,
           lastSeenAt: occurredAt,
         });
-        // 알람은 그룹이 처음 만들어질 때 딱 한 번. 같은 에러 1,000건 = 알람 1건
-        await this.alertService.notifyNewGroup(group);
+        // 알람은 그룹이 처음 만들어질 때 딱 한 번. 같은 에러 1,000건 = 알람 1건.
+        // 과거에 해결한 비슷한 장애가 있으면 해결 메모와 함께 붙여준다
+        const similar = await this.similarIncidents.findSimilar(
+          projectId,
+          event.name,
+          event.message,
+          topFrame,
+        );
+        await this.alertService.notifyNewGroup(group, similar);
       } catch (err) {
         // 컨슈머가 여러 개일 때 같은 지문을 동시에 저장하면 unique 제약에 걸린다.
         // 그 경우 먼저 저장된 쪽을 다시 읽어서 이어간다 (에러가 아니라 정상 경합)

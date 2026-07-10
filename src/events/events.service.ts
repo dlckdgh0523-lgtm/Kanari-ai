@@ -37,12 +37,17 @@ export class EventsService {
   }
 
   // 그룹을 해결 처리한다. Phase 4에서 해결 메모가 추가되면
-  // 이 메모들이 유사 장애 검색(RAG)의 지식베이스가 된다
-  async resolveGroup(groupId: number) {
+  // 이 메모들이 유사 장애 검색의 지식베이스가 된다.
+  // 메모 없이 resolve만 하면 지식이 안 쌓이므로, 화면(Phase 7)에서는 메모 입력을 유도한다
+  async resolveGroup(groupId: number, note?: string) {
     const group = await this.groupRepo.findOneBy({ id: groupId });
     if (!group) throw new NotFoundException(`group ${groupId} not found`);
 
-    await this.groupRepo.update(groupId, { status: 'resolved' });
-    return { id: groupId, status: 'resolved' };
+    await this.groupRepo.update(groupId, {
+      status: 'resolved',
+      resolveNote: note ?? null,
+      resolvedAt: new Date(),
+    });
+    return { id: groupId, status: 'resolved', resolveNote: note ?? null };
   }
 }

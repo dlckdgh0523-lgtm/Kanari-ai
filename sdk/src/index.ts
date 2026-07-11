@@ -36,6 +36,12 @@ export interface KanariTransportOptions
   flushIntervalMs?: number;
   /** 이 개수가 차면 주기를 기다리지 않고 바로 보낸다. 기본 50건 (서버의 배치 상한과 같다) */
   maxBatchSize?: number;
+  /**
+   * true면 logger.error()로 잡지 못한 예외까지 자동 포착한다.
+   * (uncaughtException, unhandledRejection 프로세스 훅 등록)
+   * 개발자가 try/catch를 깜빡한 에러가 바로 이런 걸로 죽는다 - 가장 위험한 종류다
+   */
+  captureGlobalErrors?: boolean;
 }
 
 // 서버의 IngestEventDto와 같은 모양
@@ -72,6 +78,63 @@ export class KanariTransport extends Transport {
     );
     // unref: 이 타이머 때문에 프로세스가 종료를 못 하는 일을 막는다
     this.timer.unref();
+
+    if (opts.captureGlobalErrors) {
+      this.attachGlobalHandlers();
+    }
+  }
+
+  // try/catch도, logger.error()도 놓친 예외를 프로세스 훅으로 포착한다.
+  //
+  // 함정 주의: uncaughtException에 핸들러를 달면 Node는 기본 동작(프로세스 사망)을
+  // 멈춘다. 죽어야 할 앱이 망가진 상태로 계속 도는 건 더 위험하다.
+  // 그래서 우리가 유일한 핸들러라면, 보고를 밀어낸 뒤 원래대로 죽여준다(exit 1).
+  // 앱이 자기 핸들러를 따로 달았다면 죽일지 말지는 그 앱의 결정에 맡긴다
+  private attachGlobalHandlers() {
+    process.on('uncaughtException', (err) => {
+      this.captureError(err, { source: 'uncaughtException' });
+      const soleHandler = process.listenerCount('uncaughtException') <= 1;
+      // 프로세스가 곧 죽으니 배치 주기를 기다리지 않고 즉시 밀어낸다
+      void this.flush().finally(() => {
+        if (soleHandler) this.dieLikeDefault(err);
+      });
+    });
+
+    process.on('unhandledRejection', (reason) => {
+      const err = reason instanceof Error ? reason : new Error(String(reason));
+      this.captureError(err, { source: 'unhandledRejection' });
+      const soleHandler = process.listenerCount('unhandledRejection') <= 1;
+      void this.flush().finally(() => {
+        if (soleHandler) this.dieLikeDefault(err);
+      });
+    });
+  }
+
+  // Node의 기본 동작(에러 출력 후 비정상 종료)을 재현한다.
+  // process.exit()을 바로 부르면 방금 flush한 HTTP 커넥션 정리와 충돌해
+  // Windows에서 libuv 단언 크래시가 난다. 그래서 exitCode만 지정하고
+  // 이벤트 루프가 자연히 비면서 종료되게 둔다. 뭔가가 루프를 계속 붙잡고 있는
+  // 경우를 대비해 2초 뒤 강제 종료 안전핀을 걸어둔다 (unref라 평소엔 발동 안 함)
+  private dieLikeDefault(err: Error) {
+    console.error(err);
+    process.exitCode = 1;
+    setTimeout(() => process.exit(1), 2000).unref();
+  }
+
+  // Error 객체를 직접 카나리로 보낸다. winston을 거치지 않는 비상구
+  captureError(err: Error, context?: Record<string, unknown>) {
+    try {
+      this.buffer.push({
+        name: err.name || 'Error',
+        message: err.message,
+        stack: err.stack,
+        level: 'error',
+        context,
+        occurredAt: new Date().toISOString(),
+      });
+    } catch {
+      // SDK는 어떤 경우에도 앱에 예외를 전파하지 않는다
+    }
   }
 
   // winston이 로그 한 건마다 호출하는 메서드

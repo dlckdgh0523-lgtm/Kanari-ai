@@ -25,6 +25,8 @@ const logger = winston.createLogger({
     new KanariTransport({
       apiKey: process.env.KANARI_API_KEY!,
       endpoint: 'http://localhost:3000',
+      // try/catch도 logger.error도 놓친 예외까지 자동 포착
+      captureGlobalErrors: true,
     }),
   ],
 });
@@ -44,3 +46,12 @@ logger.error('payment failed', {
 - error, warn 레벨만 전송한다 (기본값. `level` 옵션으로 변경 가능)
 - 5초마다 또는 50건이 차면 배치로 전송한다
 - 전송 실패는 조용히 버린다. 카나리 서버가 죽어 있어도 당신의 서비스는 아무 영향이 없다
+- `captureGlobalErrors: true`면 uncaughtException과 unhandledRejection까지 자동으로 잡는다.
+  관찰만 할 뿐 프로세스 종료 여부에는 개입하지 않는다
+
+## 무엇이 자동이고 무엇을 심어야 하나
+
+- 자동: 기존 코드의 `logger.error()` / `logger.warn()` 호출, (옵션 켜면) 놓친 예외.
+  에러 위치는 스택트레이스가 자동으로 알려준다
+- 심으면 좋아지는 것: traceId, 요청 경로 같은 context, 외부 API 실패 로그.
+  무엇이 어디서 터졌는지는 자동이고, 누가 뭘 하다가 왜 터졌는지는 심어야 보인다

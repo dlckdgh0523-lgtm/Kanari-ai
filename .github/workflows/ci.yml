@@ -1,0 +1,42 @@
+# 카나리 자신의 CI. 우리가 사용자에게 권하는 "배포 전 검증"을 우리 리포에도 건다.
+# push/PR마다 빌드와 테스트가 통과해야 한다. 하나라도 깨지면 빨간불.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: 의존성 설치
+        run: npm ci
+
+      - name: 빌드 (타입 체크 포함)
+        run: npm run build
+
+      - name: 단위 테스트
+        run: npm test
+
+  sdk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sdk
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: SDK 빌드
+        run: npm run build

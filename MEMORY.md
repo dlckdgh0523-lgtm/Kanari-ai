@@ -121,6 +121,9 @@ Node.js 서비스용 에러 관제 SaaS. SDK(Winston transport)로 에러를 모
 - source map 해석은 보류 결정 (26-07-12): 우리는 백엔드 Node SDK. TS 소스맵이 이미 스택을 원본 .ts 위치로 보여줌 -> 백엔드에선 소스맵 해석 payoff 낮음. 압축 스택 복원은 프론트/번들 코드 문제이고, 그건 미래의 브라우저 SDK와 함께 해야 값어치. 지금 반쯤 만드는 건 과설계
 - 멀티에이전트 설계 원칙 확정: 라이브러리별이 아니라 축(질문)별 분해 / 상위는 데이터보관이 아니라 판정기준+종합+반증 / 회의론자 에이전트로 검증. Phase 4-b 조사에이전트에 적용
 
+- [x] D1 테스트 기반 시작 (26-07-12): Jest+ts-jest 도입. 순수함수 단위테스트 21개 통과(fingerprint 8, p95FromBuckets 4, source-location 9). GitHub Actions CI(build+test+sdk build) 추가 = 우리 배포게이트 철학 도그푸딩. 남음: 통합테스트(실DB ingest->group, 인증401/403, 회귀흐름), SDK 테스트
+- 심화 로드맵 DEPTH.md 작성: D1 테스트+CI / D2 Redis(분산상태) / D3 Kafka심화(DLQ,멱등,컨슈머랙) / D4 카디널리티방어 / D5 Winston심화(child logger ALS,profiling,exceptionHandlers) / D6 보안전체 / D7 부채(마이그레이션,페이지네이션,health) / D8 AI에이전트. 순서=테스트로 잠근 뒤 리팩터링
+
 ## 관련 링크
 
 - GitHub: github.com/dlckdgh0523-lgtm/Kanari-ai

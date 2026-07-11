@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { Kafka } from 'kafkajs';
+import { createAppLogger } from './common/logging';
 import { RAW_EVENTS_TOPIC } from './ingest/ingest.service';
 import { GroupingService } from './grouping/grouping.service';
 import { WorkerModule } from './grouping/worker.module';
@@ -7,7 +8,9 @@ import { WorkerModule } from './grouping/worker.module';
 // 컨슈머 진입점. HTTP 서버 없이 NestJS의 DI만 빌려 쓰는 standalone 모드로 띄운다.
 // 실행: npm run start:worker
 async function bootstrap() {
-  const app = await NestFactory.createApplicationContext(WorkerModule);
+  const app = await NestFactory.createApplicationContext(WorkerModule, {
+    logger: createAppLogger('kanari-worker'),
+  });
   const groupingService = app.get(GroupingService);
 
   const kafka = new Kafka({

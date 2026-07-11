@@ -7,6 +7,7 @@ import { ProjectsModule } from './projects/projects.module';
 import { IngestModule } from './ingest/ingest.module';
 import { EventsModule } from './events/events.module';
 import { ChecksModule } from './checks/checks.module';
+import { MetricsModule } from './metrics/metrics.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ChecksModule } from './checks/checks.module';
     IngestModule,
     EventsModule,
     ChecksModule,
+    MetricsModule,
   ],
   providers: [
     // 레이트리밋을 모든 라우트에 기본 적용한다

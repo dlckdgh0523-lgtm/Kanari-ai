@@ -59,7 +59,47 @@ services:
     volumes:
       - qdrant-data:/qdrant/storage
 
+  # ----- 관측 스택 (카나리 자신을 감시하는 눈) -----
+
+  # 로그 중앙 저장소. Winston(winston-loki)이 여기로 로그를 밀어 넣는다
+  loki:
+    image: grafana/loki:3.4.2
+    container_name: kanari-loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki-data:/loki
+
+  # 메트릭 수집기. 15초마다 API의 /metrics를 긁어간다 (docker/prometheus.yml)
+  prometheus:
+    image: prom/prometheus:v3.2.1
+    container_name: kanari-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+
+  # 대시보드. http://localhost:3001 (admin / kanari-dev)
+  grafana:
+    image: grafana/grafana:11.6.0
+    container_name: kanari-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: kanari-dev
+    volumes:
+      - ./docker/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - loki
+      - prometheus
+
 volumes:
   mysql-data:
   kafka-data:
   qdrant-data:
+  loki-data:
+  prometheus-data:
+  grafana-data:

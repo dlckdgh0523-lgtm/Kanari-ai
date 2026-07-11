@@ -1,0 +1,11 @@
+# Prometheus 수집 설정.
+# Prometheus는 우리가 보내는 게 아니라, 15초마다 /metrics를 긁어간다(pull 방식).
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: kanari-api
+    static_configs:
+      # host.docker.internal = 컨테이너에서 호스트(내 PC)를 가리키는 주소.
+      # API는 지금 호스트에서 직접 돌고 있어서 이렇게 접근한다 (ECS에서는 태스크 주소로 바뀐다)
+      - targets: ['host.docker.internal:3000']

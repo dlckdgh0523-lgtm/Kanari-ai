@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { createHash, randomBytes } from 'crypto';
 import { Repository } from 'typeorm';
@@ -21,11 +25,12 @@ export class ProjectsService {
     return createHash('sha256').update(key).digest('hex');
   }
 
-  async create(name: string, discordWebhookUrl?: string) {
+  async create(ownerId: number | null, name: string, discordWebhookUrl?: string) {
     const apiKey = this.generateApiKey();
 
     const project = await this.projectRepo.save({
       name,
+      ownerId,
       apiKeyHash: this.hashApiKey(apiKey),
       discordWebhookUrl: discordWebhookUrl ?? null,
     });
@@ -34,11 +39,30 @@ export class ProjectsService {
     return { id: project.id, name: project.name, apiKey };
   }
 
-  async findAll() {
+  // 내 프로젝트만 보인다. 남의 프로젝트는 존재조차 알 수 없어야 한다
+  async findAllByOwner(ownerId: number) {
     return this.projectRepo.find({
-      select: ['id', 'name', 'createdAt'], // 키 해시는 목록에 내려주지 않는다
+      where: { ownerId },
+      select: ['id', 'name', 'discordWebhookUrl', 'createdAt'],
       order: { id: 'DESC' },
     });
+  }
+
+  // 다른 모듈(에러 조회, 합성 테스트)이 공용으로 쓰는 소유권 검사.
+  // ownerId가 null인 프로젝트는 콘솔 도입 전 개발 데이터라 접근 허용(로컬 한정)
+  async assertOwner(projectId: number, userId: number) {
+    const project = await this.projectRepo.findOneBy({ id: projectId });
+    if (!project) throw new NotFoundException(`project ${projectId} not found`);
+    if (project.ownerId !== null && project.ownerId !== userId) {
+      throw new ForbiddenException('내 프로젝트가 아닙니다');
+    }
+    return project;
+  }
+
+  async updateWebhook(projectId: number, userId: number, url: string | null) {
+    await this.assertOwner(projectId, userId);
+    await this.projectRepo.update(projectId, { discordWebhookUrl: url });
+    return { id: projectId, discordWebhookUrl: url };
   }
 
   // 인증 가드가 사용한다. 클라이언트가 보낸 키를 해시해서 DB의 해시와 비교

@@ -21,6 +21,12 @@ async function bootstrap() {
   // 공개 인터넷에 노출되는 API의 기본기다
   app.use(helmet());
 
+  // 대시보드(다른 포트에서 뜨는 웹)가 이 API를 부를 수 있게 허용.
+  // 운영에서는 실제 대시보드 도메인만 화이트리스트에 넣는다
+  app.enableCors({
+    origin: (process.env.CORS_ORIGIN ?? 'http://localhost:5173').split(','),
+  });
+
   // 바디 크기 제한: SDK 배치 50건이 넉넉히 들어오고도 남는 크기.
   // 무제한이면 수백 MB 바디 하나로 서버 메모리를 태우는 공격에 노출된다
   app.use(json({ limit: '256kb' }));

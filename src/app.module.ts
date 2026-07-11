@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProjectsModule } from './projects/projects.module';
 import { IngestModule } from './ingest/ingest.module';
 import { EventsModule } from './events/events.module';
+import { AuthModule } from './auth/auth.module';
 import { ChecksModule } from './checks/checks.module';
 import { MetricsModule } from './metrics/metrics.module';
 
@@ -30,6 +31,7 @@ import { MetricsModule } from './metrics/metrics.module';
       synchronize: true,
     }),
 
+    AuthModule,
     ProjectsModule,
     IngestModule,
     EventsModule,

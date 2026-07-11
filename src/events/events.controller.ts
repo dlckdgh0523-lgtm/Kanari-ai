@@ -6,8 +6,11 @@ import {
   ParseIntPipe,
   Patch,
   Query,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { IsOptional, IsString, MaxLength } from 'class-validator';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { EventsService } from './events.service';
 
 class ResolveDto {
@@ -18,9 +21,11 @@ class ResolveDto {
   note?: string;
 }
 
-// 대시보드가 사용하는 조회 API.
-// 지금은 인증이 없다 - 대시보드(Phase 7)를 붙일 때 관리자 인증을 함께 단다.
+type AuthedRequest = { user: { id: number; email: string } };
+
+// 대시보드가 사용하는 조회 API. 전부 로그인 + 자기 프로젝트만
 @Controller()
+@UseGuards(JwtAuthGuard)
 export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
@@ -28,20 +33,37 @@ export class EventsController {
   @Get('projects/:projectId/groups')
   findGroups(
     @Param('projectId', ParseIntPipe) projectId: number,
+    @Req() req: AuthedRequest,
     @Query('status') status?: string,
   ) {
-    return this.eventsService.findGroups(projectId, status);
+    return this.eventsService.findGroups(projectId, req.user.id, status);
+  }
+
+  // GET /projects/1/events - 터미널 로그 뷰용 최근 이벤트 흐름
+  @Get('projects/:projectId/events')
+  findRecentEvents(
+    @Param('projectId', ParseIntPipe) projectId: number,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.eventsService.findRecentEvents(projectId, req.user.id);
   }
 
   // GET /groups/10
   @Get('groups/:id')
-  findGroupDetail(@Param('id', ParseIntPipe) id: number) {
-    return this.eventsService.findGroupDetail(id);
+  findGroupDetail(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.eventsService.findGroupDetail(id, req.user.id);
   }
 
   // PATCH /groups/10/resolve  { "note": "원인과 조치 메모" }
   @Patch('groups/:id/resolve')
-  resolve(@Param('id', ParseIntPipe) id: number, @Body() dto: ResolveDto) {
-    return this.eventsService.resolveGroup(id, dto.note);
+  resolve(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: ResolveDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.eventsService.resolveGroup(id, req.user.id, dto.note);
   }
 }

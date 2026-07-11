@@ -86,12 +86,17 @@ Node.js 서비스용 에러 관제 SaaS. SDK(Winston transport)로 에러를 모
 - 참고 자료: 상위 폴더의 카카오톡 스크린샷 11장 (RAG 아키텍처 8종, Claude 디자인 스킬 스택, 장애 알림 실무 사례, AX 지식그래프, B2B 대시보드 디자인 프롬프트)
 - 로컬 경로 변경됨: C:\Users\mszza\Desktop\창호\kanari\kanari (구 새 폴더\kanari)
 
+- [x] Phase 7-a (26-07-11): 콘솔 인증(가입/로그인 JWT 12h, bcrypt) + 프로젝트 소유권(ownerId, assertOwner 공용 검사) + 콘솔 API 전체 보호(401/403 검증) + CORS. 웹훅 설정 PATCH /projects/:id/webhook, 로그 피드 GET /projects/:id/events 추가
+- [x] Phase 7-b (26-07-11): web/ Vite+React 대시보드. 디자인: 갱도(암갈색)+카나리아 노랑, 시그니처=셸 프롬프트 제목(❯ kanari groups --project N)+깜빡이는 커서, ssh 상태바. 화면: 로그인/가입, 프로젝트(키 1회 표시+웹훅 설정), 에러 인박스, 그룹 상세(해결 메모 유도), tail -f 로그 스트림(3초 폴링). frontend-design 스킬 가이드 적용. 실행: web에서 npm run dev (:5173)
+- [ ] Phase 7 남은 것: 합성 테스트 화면, SDK 설치 가이드 페이지, 브라우저 시각 검증(크롬 확장 미연결로 자동화 못함 - 창호 눈으로 확인)
+
 ## 관련 링크
 
 - GitHub: github.com/dlckdgh0523-lgtm/Kanari-ai
 - 참고 리포: github.com/dlckdgh0523-lgtm/AI- (쇼핑 컨시어지 — 재사용할 패턴: 모델 다운시프트, 인용 검증, A/B 하네스)
 - 진로나침반: github.com/dlckdgh0523-lgtm/jinro-backend
 - 블로그(회고 올릴 곳): blog.naver.com/moodie_lv3
+
 
 
 

@@ -219,16 +219,17 @@ logger.add(new KanariTransport({
               <b style={{ color: 'var(--ok)' }}>잡습니다</b>
               <p className="dim">
                 서버 코드의 error·warn 로그 전부, try/catch를 놓친 예외
-                (captureGlobalErrors), 같은 에러의 급증, 그리고 200을 주면서도
-                내용이 깨진 장애(합성 테스트).
+                (captureGlobalErrors), 같은 에러의 급증, 200을 주면서도 내용이
+                깨진 장애(합성 테스트), 그리고 에러 없이 느려지기만 하는
+                지연(APM 미들웨어: 라우트별 p95가 평소의 2.5배면 🐢 알람).
               </p>
             </div>
             <div className="panel">
               <b style={{ color: 'var(--warn)' }}>못 잡습니다</b>
               <p className="dim">
-                브라우저에서 나는 프론트엔드 에러, 에러 없이 느려지기만 하는
-                성능 저하, 디스크나 메모리 같은 인프라 지표. 이건 APM과
-                메트릭의 영역이라 정직하게 선을 긋습니다.
+                브라우저에서 나는 프론트엔드 에러, 코드 한 줄·쿼리 한 개
+                단위의 스팬 추적, 디스크나 메모리 같은 인프라 지표. 그건
+                OpenTelemetry와 전문 APM의 영역이라 정직하게 선을 긋습니다.
               </p>
             </div>
           </div>

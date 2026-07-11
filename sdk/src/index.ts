@@ -1,5 +1,8 @@
 import Transport from 'winston-transport';
 
+export { KanariMetrics, BUCKET_EDGES } from './metrics';
+export type { KanariMetricsOptions } from './metrics';
+
 // ---------------------------------------------------------------
 // 카나리 SDK: Winston 커스텀 transport.
 //

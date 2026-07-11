@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ApmModule } from '../apm/apm.module';
+import { RouteStat } from '../apm/route-stat.entity';
 import { CheckRunnerService } from '../checks/check-runner.service';
 import { SyntheticCheck } from '../checks/synthetic-check.entity';
 import { ErrorEvent } from '../events/error-event.entity';
@@ -30,7 +32,14 @@ import { WatchdogService } from './watchdog.service';
     // 워치독(@Cron)이 동작하려면 스케줄 모듈이 필요하다.
     // API가 아니라 워커에만 다는 이유: 두 프로세스에 다 달면 같은 감시가 두 번 돈다
     ScheduleModule.forRoot(),
-    TypeOrmModule.forFeature([ErrorGroup, ErrorEvent, Project, SyntheticCheck]),
+    TypeOrmModule.forFeature([
+      ErrorGroup,
+      ErrorEvent,
+      Project,
+      SyntheticCheck,
+      RouteStat,
+    ]),
+    ApmModule, // 메트릭 컨슈머(ApmService)
   ],
   providers: [
     GroupingService,

@@ -1,7 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { Kafka } from 'kafkajs';
+import { ApmService } from './apm/apm.service';
 import { createAppLogger } from './common/logging';
-import { RAW_EVENTS_TOPIC } from './ingest/ingest.service';
+import { RAW_EVENTS_TOPIC, RAW_METRICS_TOPIC } from './ingest/ingest.service';
 import { GroupingService } from './grouping/grouping.service';
 import { WorkerModule } from './grouping/worker.module';
 
@@ -12,6 +13,7 @@ async function bootstrap() {
     logger: createAppLogger('kanari-worker'),
   });
   const groupingService = app.get(GroupingService);
+  const apmService = app.get(ApmService);
 
   const kafka = new Kafka({
     clientId: 'kanari-worker',
@@ -24,7 +26,10 @@ async function bootstrap() {
   const admin = kafka.admin();
   await admin.connect();
   await admin.createTopics({
-    topics: [{ topic: RAW_EVENTS_TOPIC, numPartitions: 3 }], // 이미 있으면 그냥 넘어간다
+    topics: [
+      { topic: RAW_EVENTS_TOPIC, numPartitions: 3 }, // 이미 있으면 그냥 넘어간다
+      { topic: RAW_METRICS_TOPIC, numPartitions: 3 },
+    ],
   });
   await admin.disconnect();
 
@@ -33,16 +38,25 @@ async function bootstrap() {
   const consumer = kafka.consumer({ groupId: 'kanari-grouping' });
   await consumer.connect();
   await consumer.subscribe({ topic: RAW_EVENTS_TOPIC, fromBeginning: false });
+  await consumer.subscribe({ topic: RAW_METRICS_TOPIC, fromBeginning: false });
 
-  console.log('kanari worker consuming', RAW_EVENTS_TOPIC);
+  console.log('kanari worker consuming', RAW_EVENTS_TOPIC, RAW_METRICS_TOPIC);
 
   await consumer.run({
-    eachMessage: async ({ message }) => {
+    eachMessage: async ({ topic, message }) => {
       if (!message.value) return;
 
       try {
         const payload = JSON.parse(message.value.toString());
-        await groupingService.handleEvent(payload.projectId, payload.event);
+        if (topic === RAW_METRICS_TOPIC) {
+          await apmService.handleMetrics(
+            payload.projectId,
+            payload.payload?.stats ?? [],
+            payload.payload?.slow ?? [],
+          );
+        } else {
+          await groupingService.handleEvent(payload.projectId, payload.event);
+        }
       } catch (err) {
         // 한 건이 깨졌다고 컨슈머 전체를 멈추지 않는다.
         // 여기서 throw 하면 같은 메시지를 계속 재시도하며 뒤 메시지까지 막아버린다(포이즌 메시지).

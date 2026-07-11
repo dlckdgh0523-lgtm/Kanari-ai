@@ -92,6 +92,28 @@ export class AlertService {
     });
   }
 
+  // 성능 워치독: 라우트 응답이 평소보다 크게 느려졌을 때
+  async notifySlowdown(
+    projectId: number,
+    routeLabel: string,
+    recentP95: number,
+    baselineP95: number,
+    count: number,
+  ) {
+    await this.send(projectId, {
+      title: `🐢 응답이 느려지고 있습니다`,
+      color: 0xe8a33d, // 경보(앰버): 죽진 않았지만 사용자는 이미 체감 중
+      description: '`' + routeLabel + '`',
+      fields: [
+        {
+          name: '지연',
+          value: `최근 5분 p95 **${recentP95}ms** (평소 약 ${baselineP95}ms) · 요청 ${count}건`,
+        },
+      ],
+      timestamp: new Date().toISOString(),
+    });
+  }
+
   async notifyCheckRecovered(check: SyntheticCheck) {
     await this.send(check.projectId, {
       title: `🟢 회복 · ${check.name}`,

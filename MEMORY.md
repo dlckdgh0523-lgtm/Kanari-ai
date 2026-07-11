@@ -95,12 +95,16 @@ Node.js 서비스용 에러 관제 SaaS. SDK(Winston transport)로 에러를 모
 - [x] Phase 6-b 준비 (26-07-11): Dockerfile(멀티스테이지, non-root, 이미지 로컬 검증 완료 - compose 네트워크에서 부팅+DB연결+서빙 확인), Terraform 초안(ECR/ECS Fargate api·worker·kafka/RDS/ALB, Service Connect로 내부 DNS), DEPLOY.md(순서·비용표 월 $50·트레이드오프). apply는 창호 AWS 계정 세팅 후
 - 아이디어 (Phase 8 후보): 성능 워치독 - SDK가 라우트별 응답시간을 1분 집계로 전송 → 기준선 대비 지연 급증 알람. 풀 APM은 범위 밖, 느려짐 감지만 잘라서. 합성 테스트 응답시간 추이 알람도 저비용 대안
 
+- [x] APM (26-07-11): SDK KanariMetrics 미들웨어(라우트별 60초 집계 + 분포 버킷, 1초 초과는 개별 샘플, 실제 경로 아닌 라우트 패턴으로 카디널리티 제어) → POST /ingest/metrics → 별도 Kafka 토픽(kanari.metrics.raw, 에러 처리를 안 막게 분리) → route_stats/slow_samples 저장 → 성능 워치독(p95 300ms 이상 AND 기준선 2.5배, 표본 20건 이상, 30분 쿨다운, 쿨다운은 메모리=워커 1대 트레이드오프) → 🐢 알람. 콘솔 /apm 화면(라우트 표+느린 샘플, 15초 갱신). E2E: 25건 400ms 트래픽 → 집계 p95=500ms → 워치독 1분 내 발동 확인. SDK 0.4.0 (publish는 창호)
+- 경계 확정: 라우트 레벨 APM까지가 카나리. 스팬/쿼리 단위 트레이싱은 OTel 영역 (랜딩 scope 섹션 갱신됨)
+
 ## 관련 링크
 
 - GitHub: github.com/dlckdgh0523-lgtm/Kanari-ai
 - 참고 리포: github.com/dlckdgh0523-lgtm/AI- (쇼핑 컨시어지 — 재사용할 패턴: 모델 다운시프트, 인용 검증, A/B 하네스)
 - 진로나침반: github.com/dlckdgh0523-lgtm/jinro-backend
 - 블로그(회고 올릴 곳): blog.naver.com/moodie_lv3
+
 
 
 

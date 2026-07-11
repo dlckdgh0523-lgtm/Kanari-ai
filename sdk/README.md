@@ -49,6 +49,21 @@ logger.error('payment failed', {
 - `captureGlobalErrors: true`면 uncaughtException과 unhandledRejection까지 자동으로 잡는다.
   관찰만 할 뿐 프로세스 종료 여부에는 개입하지 않는다
 
+## 성능 감시 (APM)
+
+에러뿐 아니라 느려짐도 잡고 싶다면 미들웨어를 추가한다:
+
+```ts
+import { KanariMetrics } from 'kanari';
+
+const metrics = new KanariMetrics({ apiKey: process.env.KANARI_API_KEY! });
+app.use(metrics.middleware()); // Express / NestJS 공통
+```
+
+- 라우트별 응답시간을 60초 단위로 집계해 보낸다 (요청마다 보내지 않는다)
+- 1초를 넘는 요청은 개별 샘플로 함께 기록된다
+- 라우트 p95가 평소의 2.5배로 느려지면 카나리가 🐢 알람을 보낸다
+
 ## 무엇이 자동이고 무엇을 심어야 하나
 
 - 자동: 기존 코드의 `logger.error()` / `logger.warn()` 호출, (옵션 켜면) 놓친 예외.

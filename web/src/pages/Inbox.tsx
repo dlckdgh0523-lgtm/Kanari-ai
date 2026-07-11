@@ -41,10 +41,13 @@ export function Inbox() {
           </button>
         ))}
         <Link
-          to={`/console/projects/${projectId}/checks`}
+          to={`/console/projects/${projectId}/apm`}
           style={{ marginLeft: 'auto' }}
           className="dim"
         >
+          성능(APM)
+        </Link>
+        <Link to={`/console/projects/${projectId}/checks`} className="dim">
           합성 테스트
         </Link>
         <Link to={`/console/projects/${projectId}/logs`} className="dim">

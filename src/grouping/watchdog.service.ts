@@ -3,6 +3,8 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MoreThan, Repository } from 'typeorm';
 import { Between } from 'typeorm';
+import { p95FromBuckets, BUCKET_EDGES } from '../apm/apm.service';
+import { RouteStat } from '../apm/route-stat.entity';
 import { CheckRunnerService } from '../checks/check-runner.service';
 import { ErrorEvent } from '../events/error-event.entity';
 import { ErrorGroup } from '../events/error-group.entity';
@@ -23,9 +25,16 @@ export class WatchdogService {
     private readonly groupRepo: Repository<ErrorGroup>,
     @InjectRepository(ErrorEvent)
     private readonly eventRepo: Repository<ErrorEvent>,
+    @InjectRepository(RouteStat)
+    private readonly statRepo: Repository<RouteStat>,
     private readonly alertService: AlertService,
     private readonly checkRunner: CheckRunnerService,
   ) {}
+
+  // 지연 급증 알람의 쿨다운 (프로젝트:라우트 -> 마지막 알람 시각).
+  // 메모리에 두는 트레이드오프: 워커가 재시작하면 쿨다운이 풀려 한 번 더
+  // 울릴 수 있다. 워커 1대 운영에서는 감수하고, 스케일 아웃하면 DB로 옮긴다
+  private slowdownAlertAt = new Map<string, number>();
 
   @Cron(CronExpression.EVERY_MINUTE)
   async detectSpikes() {
@@ -80,5 +89,78 @@ export class WatchdogService {
   async runSyntheticChecks() {
     const ran = await this.checkRunner.runDueChecks();
     if (ran > 0) this.logger.debug(`synthetic checks ran: ${ran}`);
+  }
+
+  // 성능 워치독: 라우트별 응답시간(p95)이 평소보다 크게 나빠졌는가?
+  // 에러 급증 탐지와 같은 철학이다 - 절대 기준(300ms 이상)과
+  // 상대 기준(기준선의 2.5배)을 둘 다 넘어야 울린다
+  @Cron(CronExpression.EVERY_MINUTE)
+  async detectSlowdowns() {
+    const now = Date.now();
+    const fiveMinAgo = new Date(now - 5 * 60 * 1000);
+    const hourAgo = new Date(now - 65 * 60 * 1000);
+
+    const recentRows = await this.statRepo.findBy({
+      minute: MoreThan(fiveMinAgo),
+    });
+    if (recentRows.length === 0) return;
+
+    const baselineRows = await this.statRepo.findBy({
+      minute: Between(hourAgo, fiveMinAgo),
+    });
+
+    // 프로젝트+라우트 단위로 분포를 합친다
+    const sum = (rows: RouteStat[]) => {
+      const map = new Map<string, { buckets: number[]; count: number; projectId: number; label: string }>();
+      for (const r of rows) {
+        const key = `${r.projectId}|${r.method} ${r.route}`;
+        let e = map.get(key);
+        if (!e) {
+          e = {
+            buckets: new Array(BUCKET_EDGES.length + 1).fill(0),
+            count: 0,
+            projectId: r.projectId,
+            label: `${r.method} ${r.route}`,
+          };
+          map.set(key, e);
+        }
+        e.count += r.count;
+        r.buckets.forEach((v, i) => (e!.buckets[i] += v));
+      }
+      return map;
+    };
+
+    const recent = sum(recentRows);
+    const baseline = sum(baselineRows);
+
+    for (const [key, r] of recent) {
+      // 표본이 적으면 p95가 요동친다. 최근 5분에 20건은 있어야 판단한다
+      if (r.count < 20) continue;
+
+      const last = this.slowdownAlertAt.get(key) ?? 0;
+      if (now - last < 30 * 60 * 1000) continue; // 30분 쿨다운
+
+      const recentP95 = p95FromBuckets(r.buckets);
+      // 기준선이 없으면(방금 붙인 서비스) 50ms를 가정한다.
+      // 처음부터 느린 서비스도 잡아주는 쪽이 놓치는 쪽보다 낫다
+      const baseP95 = Math.max(
+        baseline.has(key) ? p95FromBuckets(baseline.get(key)!.buckets) : 0,
+        50,
+      );
+
+      if (recentP95 >= 300 && recentP95 >= baseP95 * 2.5) {
+        this.logger.warn(
+          `slowdown: ${key} p95=${recentP95}ms baseline=${baseP95}ms n=${r.count}`,
+        );
+        await this.alertService.notifySlowdown(
+          r.projectId,
+          r.label,
+          recentP95,
+          baseP95,
+          r.count,
+        );
+        this.slowdownAlertAt.set(key, now);
+      }
+    }
   }
 }

@@ -25,4 +25,20 @@ export class IngestController {
     await this.ingestService.publish(req.project.id, dto.events);
     return { accepted: dto.events.length };
   }
+
+  // POST /ingest/metrics - SDK(KanariMetrics)가 60초마다 보내는 성능 집계.
+  // 구조 검증은 컨슈머 쪽에서 관대하게 처리한다 (분포 숫자 배열이라 DTO가 과함)
+  @Post('metrics')
+  @HttpCode(202)
+  @UseGuards(ApiKeyGuard)
+  async ingestMetrics(
+    @Body() body: { stats?: unknown[]; slow?: unknown[] },
+    @Req() req: { project: Project },
+  ) {
+    await this.ingestService.publishMetrics(req.project.id, {
+      stats: Array.isArray(body.stats) ? body.stats.slice(0, 200) : [],
+      slow: Array.isArray(body.slow) ? body.slow.slice(0, 50) : [],
+    });
+    return { accepted: true };
+  }
 }

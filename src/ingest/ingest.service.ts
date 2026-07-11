@@ -8,6 +8,9 @@ import { IngestEventDto } from './dto/ingest.dto';
 
 // 수집된 이벤트가 흐르는 토픽 이름. 컨슈머(worker)도 같은 상수를 쓴다
 export const RAW_EVENTS_TOPIC = 'kanari.events.raw';
+// 성능 집계(APM)가 흐르는 토픽. 에러와 분리한 이유: 성능 데이터가 밀려도
+// 에러 알람 처리를 막지 않게 하기 위해서다
+export const RAW_METRICS_TOPIC = 'kanari.metrics.raw';
 
 // 인입 API의 역할은 하나뿐이다: 받아서 Kafka에 넣는다.
 // 그룹핑 같은 무거운 일을 여기서 하지 않는 이유는,
@@ -27,6 +30,15 @@ export class IngestService implements OnModuleInit, OnApplicationShutdown {
 
   async onApplicationShutdown() {
     await this.producer.disconnect();
+  }
+
+  async publishMetrics(projectId: number, payload: unknown) {
+    await this.producer.send({
+      topic: RAW_METRICS_TOPIC,
+      messages: [
+        { key: String(projectId), value: JSON.stringify({ projectId, payload }) },
+      ],
+    });
   }
 
   async publish(projectId: number, events: IngestEventDto[]) {

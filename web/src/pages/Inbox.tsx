@@ -41,10 +41,13 @@ export function Inbox() {
           </button>
         ))}
         <Link
-          to={`/console/projects/${projectId}/logs`}
+          to={`/console/projects/${projectId}/checks`}
           style={{ marginLeft: 'auto' }}
           className="dim"
         >
+          합성 테스트
+        </Link>
+        <Link to={`/console/projects/${projectId}/logs`} className="dim">
           로그 스트림 →
         </Link>
       </div>

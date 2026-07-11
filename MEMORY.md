@@ -89,7 +89,8 @@ Node.js 서비스용 에러 관제 SaaS. SDK(Winston transport)로 에러를 모
 - [x] Phase 7-a (26-07-11): 콘솔 인증(가입/로그인 JWT 12h, bcrypt) + 프로젝트 소유권(ownerId, assertOwner 공용 검사) + 콘솔 API 전체 보호(401/403 검증) + CORS. 웹훅 설정 PATCH /projects/:id/webhook, 로그 피드 GET /projects/:id/events 추가
 - [x] Phase 7-b (26-07-11): web/ Vite+React 대시보드. 디자인: 갱도(암갈색)+카나리아 노랑, 시그니처=셸 프롬프트 제목(❯ kanari groups --project N)+깜빡이는 커서, ssh 상태바. 화면: 로그인/가입, 프로젝트(키 1회 표시+웹훅 설정), 에러 인박스, 그룹 상세(해결 메모 유도), tail -f 로그 스트림(3초 폴링). frontend-design 스킬 가이드 적용. 실행: web에서 npm run dev (:5173)
 - [x] 랜딩(/) → 로그인(/login) → 콘솔(/console) 흐름 + 테스트 계정 demo@kanari.dev / kanari-demo (프로젝트 1,2 소유, 데모 데이터 있음)
-- [ ] Phase 7 남은 것: 합성 테스트 화면, 브라우저 시각 검증(크롬 확장 미연결로 자동화 못함 - 창호 눈으로 확인)
+- [x] 합성 테스트 콘솔 화면 (26-07-11): 등록/삭제/지금 실행/run-all(배포 스모크), 상태 뱃지·방금 결과 표시. 실전 사례: 콘솔 인증 추가가 /projects를 401로 바꾼 회귀를 합성 테스트가 잡아냄
+- 결정 (26-07-11): 4-b 조사 에이전트 외부 도구 채택 = GitHub 이슈 검색 API(라이브러리 내부 에러일 때 같은 이슈 링크) + 외부 서비스 상태 확인(내 코드 vs 외부 장애 판별). OSV 취약점·스택오버플로는 보류(오탐 소음), 브라우저 시각 검증(크롬 확장 미연결로 자동화 못함 - 창호 눈으로 확인)
 
 ## 관련 링크
 
@@ -97,6 +98,7 @@ Node.js 서비스용 에러 관제 SaaS. SDK(Winston transport)로 에러를 모
 - 참고 리포: github.com/dlckdgh0523-lgtm/AI- (쇼핑 컨시어지 — 재사용할 패턴: 모델 다운시프트, 인용 검증, A/B 하네스)
 - 진로나침반: github.com/dlckdgh0523-lgtm/jinro-backend
 - 블로그(회고 올릴 곳): blog.naver.com/moodie_lv3
+
 
 
 

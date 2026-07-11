@@ -113,8 +113,11 @@ export function Projects() {
                     <button className="btn ghost" onClick={() => openWebhookEditor(p)}>
                       웹훅 설정
                     </button>{' '}
+                    <Link to={`/console/projects/${p.id}/checks`} className="dim">
+                      합성 테스트
+                    </Link>{' '}
                     <Link to={`/console/projects/${p.id}/logs`} className="dim">
-                      로그 보기 →
+                      로그 →
                     </Link>
                   </td>
                 </tr>

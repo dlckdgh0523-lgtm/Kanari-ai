@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import './styles.css';
 import { Shell } from './Shell';
+import { Checks } from './pages/Checks';
 import { GroupDetail } from './pages/GroupDetail';
 import { Inbox } from './pages/Inbox';
 import { Landing } from './pages/Landing';
@@ -21,6 +22,7 @@ const router = createBrowserRouter([
       { index: true, element: <Projects /> },
       { path: 'projects/:projectId/groups', element: <Inbox /> },
       { path: 'projects/:projectId/logs', element: <LogStream /> },
+      { path: 'projects/:projectId/checks', element: <Checks /> },
       { path: 'groups/:groupId', element: <GroupDetail /> },
     ],
   },

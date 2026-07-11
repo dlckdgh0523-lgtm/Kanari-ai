@@ -1,0 +1,11 @@
+node_modules
+dist
+web
+sdk
+examples
+docs
+.git
+.claude
+.env
+*.md
+docker-compose.yml

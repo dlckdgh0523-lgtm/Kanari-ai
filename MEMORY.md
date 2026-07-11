@@ -92,12 +92,16 @@ Node.js 서비스용 에러 관제 SaaS. SDK(Winston transport)로 에러를 모
 - [x] 합성 테스트 콘솔 화면 (26-07-11): 등록/삭제/지금 실행/run-all(배포 스모크), 상태 뱃지·방금 결과 표시. 실전 사례: 콘솔 인증 추가가 /projects를 401로 바꾼 회귀를 합성 테스트가 잡아냄
 - 결정 (26-07-11): 4-b 조사 에이전트 외부 도구 채택 = GitHub 이슈 검색 API(라이브러리 내부 에러일 때 같은 이슈 링크) + 외부 서비스 상태 확인(내 코드 vs 외부 장애 판별). OSV 취약점·스택오버플로는 보류(오탐 소음), 브라우저 시각 검증(크롬 확장 미연결로 자동화 못함 - 창호 눈으로 확인)
 
+- [x] Phase 6-b 준비 (26-07-11): Dockerfile(멀티스테이지, non-root, 이미지 로컬 검증 완료 - compose 네트워크에서 부팅+DB연결+서빙 확인), Terraform 초안(ECR/ECS Fargate api·worker·kafka/RDS/ALB, Service Connect로 내부 DNS), DEPLOY.md(순서·비용표 월 $50·트레이드오프). apply는 창호 AWS 계정 세팅 후
+- 아이디어 (Phase 8 후보): 성능 워치독 - SDK가 라우트별 응답시간을 1분 집계로 전송 → 기준선 대비 지연 급증 알람. 풀 APM은 범위 밖, 느려짐 감지만 잘라서. 합성 테스트 응답시간 추이 알람도 저비용 대안
+
 ## 관련 링크
 
 - GitHub: github.com/dlckdgh0523-lgtm/Kanari-ai
 - 참고 리포: github.com/dlckdgh0523-lgtm/AI- (쇼핑 컨시어지 — 재사용할 패턴: 모델 다운시프트, 인용 검증, A/B 하네스)
 - 진로나침반: github.com/dlckdgh0523-lgtm/jinro-backend
 - 블로그(회고 올릴 곳): blog.naver.com/moodie_lv3
+
 
 
 

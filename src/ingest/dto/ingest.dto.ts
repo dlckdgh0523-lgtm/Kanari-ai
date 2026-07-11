@@ -37,6 +37,12 @@ export class IngestEventDto {
   @MaxLength(100)
   traceId?: string;
 
+  // 배포 버전 (git SHA 등). 회귀 감지와 "어느 배포에서 생겼나"의 핵심 재료
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  release?: string;
+
   // 그 외 부가 정보 (요청 경로, 사용자 ID 해시 등). 개인정보 금지 - docs/logging-standard.md 참조
   @IsOptional()
   @IsObject()

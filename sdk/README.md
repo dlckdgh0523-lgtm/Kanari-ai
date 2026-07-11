@@ -27,6 +27,8 @@ const logger = winston.createLogger({
       endpoint: 'http://localhost:3000',
       // try/catch도 logger.error도 놓친 예외까지 자동 포착
       captureGlobalErrors: true,
+      // 배포 버전. 이 값이 있어야 회귀 감지와 "어느 배포에서 생겼나"가 동작한다
+      release: process.env.GIT_SHA,
     }),
   ],
 });
@@ -63,6 +65,25 @@ app.use(metrics.middleware()); // Express / NestJS 공통
 - 라우트별 응답시간을 60초 단위로 집계해 보낸다 (요청마다 보내지 않는다)
 - 1초를 넘는 요청은 개별 샘플로 함께 기록된다
 - 라우트 p95가 평소의 2.5배로 느려지면 카나리가 🐢 알람을 보낸다
+
+## 배포 안전 (금요일 배포 공포 없애기)
+
+`release`에 배포 버전(보통 git SHA)을 넣으면:
+
+- 에러가 **어느 배포에서 처음 생겼는지** 추적됩니다
+- 고쳤다고 표시한(resolved) 에러가 다시 나면 **회귀**로 잡아 🔴 알림을 보냅니다
+- 배포 마커를 남기면(아래) 배포 직후 새 에러가 쏟아질 때 "롤백 고려" 알림을 보냅니다
+
+배포 파이프라인에서 배포 직후 한 줄로 마커를 남깁니다:
+
+```bash
+curl -X POST https://kanari.example.com/ingest/deploy \
+  -H "x-kanari-key: $KANARI_API_KEY" \
+  -H "content-type: application/json" \
+  -d "{\"release\":\"$GIT_SHA\"}"
+```
+
+GitHub Actions 전체 예제는 `examples/github-actions-deploy.yml` 참고.
 
 ## 무엇이 자동이고 무엇을 심어야 하나
 

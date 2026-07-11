@@ -37,6 +37,9 @@ export class ErrorEvent {
   @Column({ type: 'varchar', length: 100, nullable: true })
   traceId: string | null;
 
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  release: string | null;
+
   @Column()
   occurredAt: Date;
 

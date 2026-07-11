@@ -45,6 +45,10 @@ export function GroupDetail() {
           <span className={`badge ${group.status}`}>
             {group.status === 'open' ? '열림' : '해결됨'}
           </span>
+          {group.regressed && <span className="badge fail">회귀 (재발)</span>}
+          {group.firstRelease && (
+            <span className="dim">최초 배포: {group.firstRelease}</span>
+          )}
           <span className="dim">
             총 <span className="count">{group.count.toLocaleString()}</span>회 ·
             처음 {group.firstSeenAt.slice(0, 16).replace('T', ' ')} ·

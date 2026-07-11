@@ -23,11 +23,20 @@ export class AlertService {
     private readonly projectRepo: Repository<Project>,
   ) {}
 
-  async notifyNewGroup(group: ErrorGroup, similar: ErrorGroup[] = []) {
+  async notifyNewGroup(
+    group: ErrorGroup,
+    similar: ErrorGroup[] = [],
+    release?: string,
+  ) {
     const fields: { name: string; value: string }[] = [];
 
     if (group.topFrame) {
       fields.push({ name: '위치', value: '`' + group.topFrame + '`' });
+    }
+    // 배포 버전이 있으면 "어느 배포에서 생겼나"를 알람에 박는다.
+    // 방금 배포한 버전이면 이게 그 배포의 부작용이라는 강력한 신호다
+    if (release) {
+      fields.push({ name: '배포', value: '`' + release + '`' });
     }
 
     // 과거에 해결한 비슷한 장애가 있으면 해결 메모를 함께 보여준다.
@@ -87,6 +96,42 @@ export class AlertService {
               ? `응답 **${result.statusCode}** (기대 ${check.expectedStatus}) · ${result.ms}ms`
               : `연결 실패: ${result.error} · ${result.ms}ms`,
         },
+      ],
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  // 배포 후 신규 에러 급증: 방금 배포가 부작용을 냈다. 롤백을 고려하라는 신호
+  async notifyBadDeploy(projectId: number, release: string, newErrors: number) {
+    await this.send(projectId, {
+      title: `⚠️ 배포 직후 새 에러가 쏟아집니다 — 롤백을 고려하세요`,
+      color: 0xe4572e,
+      description: '`' + release + '` 배포 이후 새로 생긴 에러 그룹',
+      fields: [
+        {
+          name: '신규 에러',
+          value: `배포 후 **${newErrors}종**의 새로운 에러가 발생했습니다`,
+        },
+      ],
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  // 회귀: 고쳤던 에러가 다시 나타났을 때. 가장 뼈아픈 종류 - 고친 게 풀렸다
+  async notifyRegression(group: ErrorGroup, release?: string) {
+    await this.send(group.projectId, {
+      title: `🔴 회귀 · 고쳤던 에러가 다시 났습니다 (그룹 #${group.id})`,
+      color: 0xe4572e, // 위험(진한 빨강): resolved가 풀린 최우선 사안
+      description:
+        '```' + `${group.name}: ${group.message.slice(0, 300)}` + '```',
+      fields: [
+        ...(group.topFrame
+          ? [{ name: '위치', value: '`' + group.topFrame + '`' }]
+          : []),
+        ...(release ? [{ name: '재발 배포', value: '`' + release + '`' }] : []),
+        ...(group.resolveNote
+          ? [{ name: '지난번 해결', value: group.resolveNote.slice(0, 200) }]
+          : []),
       ],
       timestamp: new Date().toISOString(),
     });

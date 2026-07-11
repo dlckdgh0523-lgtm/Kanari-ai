@@ -60,6 +60,14 @@ export class ErrorGroup {
   @Column({ type: 'datetime', nullable: true })
   resolvedAt: Date | null;
 
+  // 이 에러가 처음 나타난 배포 버전. "어느 배포에서 생겼나"를 답한다
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  firstRelease: string | null;
+
+  // resolved된 에러가 다시 나타나면 회귀(regression)다. 재발 여부와 시각을 기록한다
+  @Column({ default: false })
+  regressed: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 }

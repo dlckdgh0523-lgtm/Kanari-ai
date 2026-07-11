@@ -6,6 +6,7 @@ import { Between } from 'typeorm';
 import { p95FromBuckets, BUCKET_EDGES } from '../apm/apm.service';
 import { RouteStat } from '../apm/route-stat.entity';
 import { CheckRunnerService } from '../checks/check-runner.service';
+import { Deploy } from '../events/deploy.entity';
 import { ErrorEvent } from '../events/error-event.entity';
 import { ErrorGroup } from '../events/error-group.entity';
 import { AlertService } from './alert.service';
@@ -27,9 +28,14 @@ export class WatchdogService {
     private readonly eventRepo: Repository<ErrorEvent>,
     @InjectRepository(RouteStat)
     private readonly statRepo: Repository<RouteStat>,
+    @InjectRepository(Deploy)
+    private readonly deployRepo: Repository<Deploy>,
     private readonly alertService: AlertService,
     private readonly checkRunner: CheckRunnerService,
   ) {}
+
+  // 롤백 신호를 이미 보낸 배포는 다시 보내지 않는다 (배포 id 기억)
+  private rollbackAlerted = new Set<number>();
 
   // 지연 급증 알람의 쿨다운 (프로젝트:라우트 -> 마지막 알람 시각).
   // 메모리에 두는 트레이드오프: 워커가 재시작하면 쿨다운이 풀려 한 번 더
@@ -81,6 +87,45 @@ export class WatchdogService {
         await this.groupRepo.update(group.id, {
           lastSpikeAlertAt: new Date(),
         });
+      }
+    }
+  }
+
+  // 배포 후 감시: 방금 배포한 버전에서 신규 에러가 쏟아지면 "롤백 고려" 신호.
+  // 금요일 배포 공포의 핵심 - 배포가 부작용을 냈는지 배포 시각 기준으로 판단한다.
+  @Cron(CronExpression.EVERY_MINUTE)
+  async watchDeploys() {
+    const now = Date.now();
+    // 최근 30분 안의 배포만 감시한다 (그 이후 에러는 배포 탓이라 보기 어렵다)
+    const thirtyMinAgo = new Date(now - 30 * 60 * 1000);
+    const recentDeploys = await this.deployRepo.findBy({
+      deployedAt: MoreThan(thirtyMinAgo),
+    });
+
+    for (const deploy of recentDeploys) {
+      if (this.rollbackAlerted.has(deploy.id)) continue;
+
+      // 이 배포 시각 이후에 처음 생긴 에러 그룹 수를 센다
+      const newErrors = await this.groupRepo.countBy({
+        projectId: deploy.projectId,
+        firstSeenAt: MoreThan(deploy.deployedAt),
+      });
+
+      await this.deployRepo.update(deploy.id, { newErrorCount: newErrors });
+
+      // 배포 후 신규 에러 그룹이 3개 이상이면 롤백을 고려하라고 알린다.
+      // 배포 직후 잠깐(2분)은 기다린다 - 앱이 뜨는 중의 일시적 에러 오탐 방지
+      const sinceDeploy = now - deploy.deployedAt.getTime();
+      if (newErrors >= 3 && sinceDeploy > 2 * 60 * 1000) {
+        this.logger.warn(
+          `deploy ${deploy.release} caused ${newErrors} new errors`,
+        );
+        await this.alertService.notifyBadDeploy(
+          deploy.projectId,
+          deploy.release,
+          newErrors,
+        );
+        this.rollbackAlerted.add(deploy.id);
       }
     }
   }

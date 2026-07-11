@@ -44,6 +44,7 @@ export class GroupingService {
           count: 0,
           firstSeenAt: occurredAt,
           lastSeenAt: occurredAt,
+          firstRelease: event.release ?? null,
         });
         // 알람은 그룹이 처음 만들어질 때 딱 한 번. 같은 에러 1,000건 = 알람 1건.
         // 과거에 해결한 비슷한 장애가 있으면 해결 메모와 함께 붙여준다
@@ -53,13 +54,23 @@ export class GroupingService {
           event.message,
           topFrame,
         );
-        await this.alertService.notifyNewGroup(group, similar);
+        await this.alertService.notifyNewGroup(group, similar, event.release);
       } catch (err) {
         // 컨슈머가 여러 개일 때 같은 지문을 동시에 저장하면 unique 제약에 걸린다.
         // 그 경우 먼저 저장된 쪽을 다시 읽어서 이어간다 (에러가 아니라 정상 경합)
         group = await this.groupRepo.findOneBy({ projectId, fingerprint });
         if (!group) throw err;
       }
+    } else if (group.status === 'resolved') {
+      // 회귀 감지: 고쳤다고 표시한(resolved) 에러가 다시 나타났다.
+      // 로컬 테스트로는 절대 못 잡는 것 - 실제 배포된 코드에서만 드러난다.
+      // 다시 열고, 이번엔 어느 배포에서 재발했는지와 함께 알린다
+      await this.groupRepo.update(group.id, {
+        status: 'open',
+        regressed: true,
+      });
+      await this.alertService.notifyRegression(group, event.release);
+      this.logger.warn(`regression: group ${group.id} reopened`);
     }
 
     // count = count + 1 을 DB에서 계산하게 한다.
@@ -77,6 +88,7 @@ export class GroupingService {
       stack: event.stack ?? null,
       context: event.context ?? null,
       traceId: event.traceId ?? null,
+      release: event.release ?? null,
       occurredAt,
     });
 

@@ -41,4 +41,20 @@ export class IngestController {
     });
     return { accepted: true };
   }
+
+  // POST /ingest/deploy - 배포 마커. CI(GitHub Actions)나 배포 스크립트가
+  // "방금 이 버전 배포했다"고 알려주면, 이후 이 시각을 기준으로
+  // "배포 직후 에러 급증"을 판단해 롤백 신호를 줄 수 있다.
+  // API 키로 인증하므로 CI에서 curl 한 줄로 부를 수 있다
+  @Post('deploy')
+  @HttpCode(202)
+  @UseGuards(ApiKeyGuard)
+  async markDeploy(
+    @Body() body: { release?: string },
+    @Req() req: { project: Project },
+  ) {
+    const release = (body.release ?? '').slice(0, 100) || 'unknown';
+    await this.ingestService.recordDeploy(req.project.id, release);
+    return { accepted: true, release };
+  }
 }

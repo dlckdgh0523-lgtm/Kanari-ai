@@ -55,6 +55,11 @@ export function Inbox() {
               <tr key={g.id} className="row">
                 <td>
                   <Link to={`/console/groups/${g.id}`}>
+                    {g.regressed && (
+                      <span className="badge fail" style={{ marginRight: 6 }}>
+                        회귀
+                      </span>
+                    )}
                     <span className="danger">{g.name}</span>{' '}
                     <span>{g.message.slice(0, 80)}</span>
                   </Link>

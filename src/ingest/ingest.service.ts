@@ -3,7 +3,10 @@ import {
   OnApplicationShutdown,
   OnModuleInit,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { Kafka, Producer } from 'kafkajs';
+import { Repository } from 'typeorm';
+import { Deploy } from '../events/deploy.entity';
 import { IngestEventDto } from './dto/ingest.dto';
 
 // 수집된 이벤트가 흐르는 토픽 이름. 컨슈머(worker)도 같은 상수를 쓴다
@@ -18,6 +21,16 @@ export const RAW_METRICS_TOPIC = 'kanari.metrics.raw';
 @Injectable()
 export class IngestService implements OnModuleInit, OnApplicationShutdown {
   private producer: Producer;
+
+  constructor(
+    @InjectRepository(Deploy)
+    private readonly deployRepo: Repository<Deploy>,
+  ) {}
+
+  // 배포 마커는 저빈도(배포할 때만)라 Kafka를 거치지 않고 DB에 바로 쓴다
+  async recordDeploy(projectId: number, release: string) {
+    await this.deployRepo.save({ projectId, release, newErrorCount: 0 });
+  }
 
   async onModuleInit() {
     const kafka = new Kafka({

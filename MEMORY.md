@@ -107,6 +107,16 @@ Node.js 서비스용 에러 관제 SaaS. SDK(Winston transport)로 에러를 모
 - 반대 결정 (26-07-11): 리버스 프록시(요청 경로에 카나리 끼우기)는 거부. fire-and-forget 원칙 위반(카나리 죽으면 사용자 서비스도 죽음). SDK 미들웨어가 경로 밖에서 같은 목적 달성
 - 개선 과제: 부하 테스트 대상 도메인 소유 검증(현재는 경고+가드레일만)
 
+- [x] 릴리스 추적 + 회귀 감지 (26-07-12): 금요일 배포 공포 해결 계층.
+  - SDK 0.6.0: release 옵션(git SHA) -> 모든 이벤트에 실림
+  - 회귀 감지: resolved 그룹이 재발하면 자동 재오픈 + regressed=true + 🔴 회귀 알람(지난번 해결메모 첨부). E2E 확인(그룹14 resolve->재발->reopened)
+  - 배포 마커: POST /ingest/deploy (CI에서 curl 한 줄). 배포 후 신규에러 3+ 급증하면 ⚠️ 롤백 고려 알람(2분 유예, 30분 창)
+  - 신규 에러 알람에 배포 버전 표기
+  - 프론트: 회귀 뱃지(인박스/상세), 최초 배포 표기
+  - examples/github-actions-deploy.yml: 배포 스모크(run-all 실패시 파이프라인 중단) + 배포 마커
+- Winston 활용 점검: transport는 정석 사용. 미사용=child logger(traceId 자동주입 가이드 없음), profiling. 개선 여지로 기록
+- 다음 배포안전 후보: source map 해석, suspect commits(git blame)
+
 ## 관련 링크
 
 - GitHub: github.com/dlckdgh0523-lgtm/Kanari-ai

@@ -1,0 +1,42 @@
+# 배포 파이프라인에 카나리를 끼우는 예제 (배포 전/중/후를 지킨다).
+# 이 파일을 참고해 사용자가 자기 .github/workflows/deploy.yml 에 넣는다.
+
+name: deploy
+on:
+  push:
+    branches: [main]
+
+env:
+  KANARI_API_KEY: ${{ secrets.KANARI_API_KEY }}
+  KANARI_ENDPOINT: https://kanari.example.com # 배포된 카나리 주소
+  PROJECT_ID: 1
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # ... (여기서 빌드하고 서버에 배포) ...
+
+      # 배포 중: 배포 직후 스모크 테스트. 등록된 합성 테스트를 전부 실행하고
+      # 하나라도 실패하면 이 스텝이 실패해서 파이프라인이 멈춘다(= 자동 롤백 유도).
+      # 로컬 테스트가 통과해도 실제 배포 환경에서 깨지는 걸 여기서 잡는다.
+      - name: 배포 스모크 테스트
+        run: |
+          RESULT=$(curl -s -X POST \
+            "$KANARI_ENDPOINT/projects/$PROJECT_ID/checks/run-all" \
+            -H "authorization: Bearer ${{ secrets.KANARI_CONSOLE_TOKEN }}")
+          echo "$RESULT"
+          # 실패한 체크가 있으면 exit 1
+          echo "$RESULT" | node -e "const d=JSON.parse(require('fs').readFileSync(0));const bad=d.results.filter(r=>!r.ok);if(bad.length){console.error('스모크 실패:',bad.map(b=>b.name));process.exit(1)}"
+
+      # 배포 후: 배포 마커를 남긴다. 이후 카나리가 이 시각 기준으로
+      # "배포 직후 새 에러 급증"을 감시하고, 회귀(고쳤던 에러 재발)를 잡는다.
+      - name: 배포 마커 기록
+        if: success()
+        run: |
+          curl -s -X POST "$KANARI_ENDPOINT/ingest/deploy" \
+            -H "content-type: application/json" \
+            -H "x-kanari-key: $KANARI_API_KEY" \
+            -d "{\"release\":\"${{ github.sha }}\"}"

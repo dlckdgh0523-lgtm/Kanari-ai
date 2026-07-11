@@ -62,6 +62,8 @@ export interface ErrorGroup {
   lastSeenAt: string;
   resolveNote: string | null;
   resolvedAt: string | null;
+  firstRelease: string | null;
+  regressed: boolean;
 }
 
 export interface ErrorEvent {

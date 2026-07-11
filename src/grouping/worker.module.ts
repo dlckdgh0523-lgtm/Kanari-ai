@@ -6,6 +6,7 @@ import { ApmModule } from '../apm/apm.module';
 import { RouteStat } from '../apm/route-stat.entity';
 import { CheckRunnerService } from '../checks/check-runner.service';
 import { SyntheticCheck } from '../checks/synthetic-check.entity';
+import { Deploy } from '../events/deploy.entity';
 import { ErrorEvent } from '../events/error-event.entity';
 import { ErrorGroup } from '../events/error-group.entity';
 import { Project } from '../projects/project.entity';
@@ -38,6 +39,7 @@ import { WatchdogService } from './watchdog.service';
       Project,
       SyntheticCheck,
       RouteStat,
+      Deploy,
     ]),
     ApmModule, // 메트릭 컨슈머(ApmService)
   ],

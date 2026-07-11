@@ -45,6 +45,12 @@ export interface KanariTransportOptions
    * 개발자가 try/catch를 깜빡한 에러가 바로 이런 걸로 죽는다 - 가장 위험한 종류다
    */
   captureGlobalErrors?: boolean;
+  /**
+   * 배포 버전. 보통 git 커밋 SHA나 태그를 넣는다 (예: process.env.GIT_SHA).
+   * 이 값이 있어야 카나리가 "이 에러가 어느 배포에서 처음 생겼는지",
+   * "고쳤던 에러가 새 배포에서 재발했는지(회귀)"를 판단할 수 있다.
+   */
+  release?: string;
 }
 
 // 서버의 IngestEventDto와 같은 모양
@@ -54,6 +60,7 @@ interface KanariEvent {
   stack?: string;
   level?: string;
   traceId?: string;
+  release?: string;
   context?: Record<string, unknown>;
   occurredAt: string;
 }
@@ -62,6 +69,7 @@ export class KanariTransport extends Transport {
   private readonly apiKey: string;
   private readonly ingestUrl: string;
   private readonly maxBatchSize: number;
+  private readonly release?: string;
   private buffer: KanariEvent[] = [];
   private timer: NodeJS.Timeout;
 
@@ -74,6 +82,7 @@ export class KanariTransport extends Transport {
     this.ingestUrl =
       (opts.endpoint ?? 'http://localhost:3000').replace(/\/$/, '') + '/ingest';
     this.maxBatchSize = opts.maxBatchSize ?? 50;
+    this.release = opts.release;
 
     this.timer = setInterval(
       () => void this.flush(),
@@ -132,6 +141,7 @@ export class KanariTransport extends Transport {
         message: err.message,
         stack: err.stack,
         level: 'error',
+        release: this.release,
         context,
         occurredAt: new Date().toISOString(),
       });
@@ -172,6 +182,7 @@ export class KanariTransport extends Transport {
       stack,
       level: typeof info.level === 'string' ? info.level : 'error',
       traceId: typeof info.traceId === 'string' ? info.traceId : undefined,
+      release: this.release,
       context: isPlainObject(info.context) ? info.context : undefined,
       occurredAt: new Date().toISOString(),
     };

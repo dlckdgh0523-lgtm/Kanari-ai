@@ -70,7 +70,7 @@ Node.js 서비스용 에러 관제 SaaS. SDK(Winston transport)로 에러를 모
 - [x] 실행 검증(E2E) 통과 (26-07-10): 같은 에러 2회 → 그룹 1개 count 2 / 주문번호 다른 메시지 → 정규화로 같은 그룹 / SDK 데모(행 번호 달라도 같은 그룹, 기존 그룹 합류 count 2→4, warn 전송) / 잘못된 키 401
 - 트러블슈팅 기록: ① apache/kafka 이미지는 리스너에 0.0.0.0을 쓰면 기동 거부 → 호스트 생략형(//:포트)으로 해결 ② 토픽 없이 구독하면 UNKNOWN_TOPIC_OR_PARTITION 크래시 → 워커 시작 시 admin으로 명시적 생성 (블로그 글감)
 - [x] Discord 웹훅 연결 완료. 채팅에 URL이 노출됐으므로 프로젝트 마무리 시점에 재발급 권장
-- [x] npm 배포 완료 (26-07-10): kanari@0.2.0 (0.1.0은 2022년 unpublish 이력으로 영구 소진 → 0.2.0으로 우회). 외부 앱이 공개 레지스트리에서 설치해 수집까지 E2E 검증 완료
+- [x] npm 배포: kanari@0.2.0 (26-07-10). SDK 0.3.0(captureGlobalErrors) 코드 완료 → 창호가 npm publish 필요 /  (0.1.0은 2022년 unpublish 이력으로 영구 소진 → 0.2.0으로 우회). 외부 앱이 공개 레지스트리에서 설치해 수집까지 E2E 검증 완료
 - [x] Phase 3 완료 (26-07-10): 워치독(1분 주기) 급증 탐지 = 최근 5분 10건 이상 AND 기준선 3배, 30분 쿨다운 / 합성 테스트 = 등록 URL 주기 호출, 연속 2회 실패 시 알람, 회복 알림, run-all(배포 스모크 API) / 알람 4종(신규·급증·실패·회복) Discord 발송 검증 완료
 - [ ] Phase 3 미검증 항목: 회복(🟢) 알림은 로직만 있고 E2E 미확인 (jinro 장착 후 자연 검증 예정)
 - [x] Phase 3.5 보안+셀프 모니터링 (26-07-10): helmet / 바디 256kb 제한 / IP당 분당 120회 레이트리밋 / 전역 예외 필터(500 스택 비노출, express 4xx 구분) / 셀프 프로젝트(kanari-self)로 자기 에러 수집(루프 가드: /ingest 경로 제외). E2E: 413·429·헤더·Kafka 중단 시 클린 500 확인. 한계 기록: 인프라 전체 장애는 셀프 보고도 죽음 → 합성테스트+Grafana 영역
@@ -92,6 +92,7 @@ Node.js 서비스용 에러 관제 SaaS. SDK(Winston transport)로 에러를 모
 - 참고 리포: github.com/dlckdgh0523-lgtm/AI- (쇼핑 컨시어지 — 재사용할 패턴: 모델 다운시프트, 인용 검증, A/B 하네스)
 - 진로나침반: github.com/dlckdgh0523-lgtm/jinro-backend
 - 블로그(회고 올릴 곳): blog.naver.com/moodie_lv3
+
 
 
 

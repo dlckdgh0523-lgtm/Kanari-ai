@@ -117,6 +117,10 @@ Node.js 서비스용 에러 관제 SaaS. SDK(Winston transport)로 에러를 모
 - Winston 활용 점검: transport는 정석 사용. 미사용=child logger(traceId 자동주입 가이드 없음), profiling. 개선 여지로 기록
 - 다음 배포안전 후보: source map 해석, suspect commits(git blame)
 
+- [x] suspect commits + 코드 딥링크 (26-07-12): 프로젝트에 GitHub repoUrl 연결 -> 에러 스택의 첫 우리코드 프레임(file:line) 파싱 -> GitHub 정확한 줄 딥링크 + 그 파일 최근 커밋(용의자, GitHub REST commits API, 공개리포 토큰불필요). GET /groups/:id/suspect(버튼 눌렀을 때만, 그룹상세와 분리해 API 한도 관리). 정직: line-blame 아니라 file 단위 근사. E2E: 실제 Kanari-ai 리포로 src/main.ts:15 -> 딥링크 + 커밋 a85c34b 확인
+- source map 해석은 보류 결정 (26-07-12): 우리는 백엔드 Node SDK. TS 소스맵이 이미 스택을 원본 .ts 위치로 보여줌 -> 백엔드에선 소스맵 해석 payoff 낮음. 압축 스택 복원은 프론트/번들 코드 문제이고, 그건 미래의 브라우저 SDK와 함께 해야 값어치. 지금 반쯤 만드는 건 과설계
+- 멀티에이전트 설계 원칙 확정: 라이브러리별이 아니라 축(질문)별 분해 / 상위는 데이터보관이 아니라 판정기준+종합+반증 / 회의론자 에이전트로 검증. Phase 4-b 조사에이전트에 적용
+
 ## 관련 링크
 
 - GitHub: github.com/dlckdgh0523-lgtm/Kanari-ai

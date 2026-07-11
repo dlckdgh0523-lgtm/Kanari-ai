@@ -31,6 +31,13 @@ class UpdateWebhookDto {
   discordWebhookUrl?: string;
 }
 
+class UpdateRepoDto {
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  repoUrl?: string;
+}
+
 type AuthedRequest = { user: { id: number; email: string } };
 
 // 콘솔 전용 API. 전부 로그인이 필요하고, 자기 프로젝트만 다룰 수 있다
@@ -63,5 +70,15 @@ export class ProjectsController {
       req.user.id,
       dto.discordWebhookUrl || null,
     );
+  }
+
+  // PATCH /projects/1/repo  { "repoUrl": "https://github.com/owner/repo" }
+  @Patch(':id/repo')
+  updateRepo(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateRepoDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.projectsService.updateRepo(id, req.user.id, dto.repoUrl || null);
   }
 }

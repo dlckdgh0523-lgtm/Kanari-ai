@@ -43,7 +43,7 @@ export class ProjectsService {
   async findAllByOwner(ownerId: number) {
     return this.projectRepo.find({
       where: { ownerId },
-      select: ['id', 'name', 'discordWebhookUrl', 'createdAt'],
+      select: ['id', 'name', 'discordWebhookUrl', 'repoUrl', 'createdAt'],
       order: { id: 'DESC' },
     });
   }
@@ -63,6 +63,12 @@ export class ProjectsService {
     await this.assertOwner(projectId, userId);
     await this.projectRepo.update(projectId, { discordWebhookUrl: url });
     return { id: projectId, discordWebhookUrl: url };
+  }
+
+  async updateRepo(projectId: number, userId: number, repoUrl: string | null) {
+    await this.assertOwner(projectId, userId);
+    await this.projectRepo.update(projectId, { repoUrl });
+    return { id: projectId, repoUrl };
   }
 
   // 인증 가드가 사용한다. 클라이언트가 보낸 키를 해시해서 DB의 해시와 비교

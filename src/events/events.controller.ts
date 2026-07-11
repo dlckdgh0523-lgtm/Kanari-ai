@@ -66,6 +66,15 @@ export class EventsController {
     return this.eventsService.findGroupDetail(id, req.user.id);
   }
 
+  // GET /groups/10/suspect - 코드 링크 + 용의자 커밋 (GitHub 연결 시)
+  @Get('groups/:id/suspect')
+  findSuspect(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.eventsService.findSuspect(id, req.user.id);
+  }
+
   // PATCH /groups/10/resolve  { "note": "원인과 조치 메모" }
   @Patch('groups/:id/resolve')
   resolve(

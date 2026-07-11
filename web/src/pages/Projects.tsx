@@ -12,9 +12,10 @@ export function Projects() {
   const [name, setName] = useState('');
   const [issuedKey, setIssuedKey] = useState<{ name: string; key: string } | null>(null);
   const [error, setError] = useState('');
-  // 웹훅 인라인 편집. window.prompt는 임베디드 브라우저에서 차단되는 경우가 있어 쓰지 않는다
+  // 설정 인라인 편집(웹훅+저장소). window.prompt는 임베디드 브라우저에서 차단될 수 있어 쓰지 않는다
   const [editingId, setEditingId] = useState<number | null>(null);
   const [webhookInput, setWebhookInput] = useState('');
+  const [repoInput, setRepoInput] = useState('');
 
   async function load() {
     setProjects(await api<Project[]>('/projects'));
@@ -39,16 +40,21 @@ export function Projects() {
     }
   }
 
-  function openWebhookEditor(p: Project) {
+  function openSettings(p: Project) {
     setEditingId(p.id);
     setWebhookInput(p.discordWebhookUrl ?? '');
+    setRepoInput(p.repoUrl ?? '');
   }
 
-  async function saveWebhook() {
+  async function saveSettings() {
     if (editingId === null) return;
     await api(`/projects/${editingId}/webhook`, {
       method: 'PATCH',
       body: { discordWebhookUrl: webhookInput },
+    });
+    await api(`/projects/${editingId}/repo`, {
+      method: 'PATCH',
+      body: { repoUrl: repoInput },
     });
     setEditingId(null);
     await load();
@@ -103,18 +109,19 @@ export function Projects() {
                   </td>
                   <td>
                     {p.discordWebhookUrl ? (
-                      <span className="badge ok">Discord 연결됨</span>
+                      <span className="badge ok">Discord</span>
                     ) : (
                       <span className="badge unknown">알림 없음</span>
-                    )}
+                    )}{' '}
+                    {p.repoUrl && <span className="badge ok">GitHub</span>}
                   </td>
                   <td className="dim">{p.createdAt.slice(0, 10)}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>
                     <Link to={`/console/projects/${p.id}`} className="btn ghost">
                       열기
                     </Link>{' '}
-                    <button className="btn ghost" onClick={() => openWebhookEditor(p)}>
-                      웹훅 설정
+                    <button className="btn ghost" onClick={() => openSettings(p)}>
+                      설정
                     </button>
                   </td>
                 </tr>
@@ -122,18 +129,27 @@ export function Projects() {
                   <tr>
                     <td colSpan={4}>
                       <label htmlFor={`wh-${p.id}`}>
-                        Discord 웹훅 URL — 서버 설정 → 연동 → 웹훅에서 만들 수
-                        있습니다. 비우고 저장하면 알림이 꺼집니다
+                        Discord 웹훅 URL — 비우고 저장하면 알림이 꺼집니다
                       </label>
-                      <div style={{ display: 'flex', gap: 10 }}>
-                        <input
-                          id={`wh-${p.id}`}
-                          value={webhookInput}
-                          onChange={(e) => setWebhookInput(e.target.value)}
-                          placeholder="https://discord.com/api/webhooks/..."
-                          autoFocus
-                        />
-                        <button className="btn" onClick={saveWebhook} style={{ whiteSpace: 'nowrap' }}>
+                      <input
+                        id={`wh-${p.id}`}
+                        value={webhookInput}
+                        onChange={(e) => setWebhookInput(e.target.value)}
+                        placeholder="https://discord.com/api/webhooks/..."
+                        autoFocus
+                      />
+                      <label htmlFor={`repo-${p.id}`}>
+                        GitHub 저장소 URL — 에러 위치에서 코드 링크와 용의자
+                        커밋을 찾습니다
+                      </label>
+                      <input
+                        id={`repo-${p.id}`}
+                        value={repoInput}
+                        onChange={(e) => setRepoInput(e.target.value)}
+                        placeholder="https://github.com/owner/repo"
+                      />
+                      <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+                        <button className="btn" onClick={saveSettings}>
                           저장
                         </button>
                         <button className="btn ghost" onClick={() => setEditingId(null)}>

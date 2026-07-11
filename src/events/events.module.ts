@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '../auth/auth.module';
 import { SyntheticCheck } from '../checks/synthetic-check.entity';
 import { ProjectsModule } from '../projects/projects.module';
+import { SuspectService } from '../grouping/suspect.service';
 import { ErrorEvent } from './error-event.entity';
 import { ErrorGroup } from './error-group.entity';
 import { EventsController } from './events.controller';
@@ -15,6 +16,6 @@ import { EventsService } from './events.service';
     ProjectsModule, // 소유권 검사
   ],
   controllers: [EventsController],
-  providers: [EventsService],
+  providers: [EventsService, SuspectService],
 })
 export class EventsModule {}

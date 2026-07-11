@@ -29,6 +29,10 @@ export class Project {
   @Column({ type: 'varchar', length: 500, nullable: true })
   discordWebhookUrl: string | null;
 
+  // 연결된 GitHub 저장소. 있으면 에러 위치에서 코드 링크와 용의자 커밋을 찾는다
+  @Column({ type: 'varchar', length: 300, nullable: true })
+  repoUrl: string | null;
+
   @CreateDateColumn()
   createdAt: Date;
 }

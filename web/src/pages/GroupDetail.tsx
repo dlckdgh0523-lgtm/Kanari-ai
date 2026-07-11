@@ -13,6 +13,27 @@ export function GroupDetail() {
   const [events, setEvents] = useState<ErrorEvent[]>([]);
   const [note, setNote] = useState('');
   const [resolving, setResolving] = useState(false);
+  const [suspect, setSuspect] = useState<null | {
+    blobLink: string | null;
+    suspectCommit: {
+      sha: string;
+      message: string;
+      author: string;
+      date: string;
+      url: string;
+    } | null;
+    note: string;
+  }>(null);
+  const [suspectBusy, setSuspectBusy] = useState(false);
+
+  async function findSuspect() {
+    setSuspectBusy(true);
+    try {
+      setSuspect(await api(`/groups/${groupId}/suspect`));
+    } finally {
+      setSuspectBusy(false);
+    }
+  }
 
   useEffect(() => {
     api<{ group: ErrorGroup; recentEvents: ErrorEvent[] }>(`/groups/${groupId}`)
@@ -79,6 +100,41 @@ export function GroupDetail() {
               context: {JSON.stringify(sample.context)}
             </div>
           )}
+
+          {/* 범인 찾기: 스택 위치 -> GitHub 코드 링크 + 그 파일 최근 커밋 */}
+          <div style={{ marginTop: 12, borderTop: '1px solid var(--coal-2)', paddingTop: 12 }}>
+            {!suspect ? (
+              <button className="btn ghost" onClick={findSuspect} disabled={suspectBusy}>
+                {suspectBusy ? '찾는 중...' : '🔍 범인 커밋 찾기 (GitHub)'}
+              </button>
+            ) : (
+              <div>
+                {suspect.blobLink && (
+                  <div style={{ marginBottom: 8 }}>
+                    <a href={suspect.blobLink} target="_blank" rel="noreferrer" className="canary">
+                      → 터진 코드 줄로 이동 (GitHub)
+                    </a>
+                  </div>
+                )}
+                {suspect.suspectCommit ? (
+                  <div>
+                    <span className="badge fail">유력 용의자</span>{' '}
+                    <a href={suspect.suspectCommit.url} target="_blank" rel="noreferrer">
+                      <span className="count">{suspect.suspectCommit.sha}</span>
+                    </a>{' '}
+                    {suspect.suspectCommit.message}
+                    <div className="dim" style={{ fontSize: 12, marginTop: 2 }}>
+                      {suspect.suspectCommit.author} ·{' '}
+                      {suspect.suspectCommit.date.slice(0, 10)}
+                    </div>
+                  </div>
+                ) : null}
+                <div className="dim" style={{ fontSize: 12, marginTop: 6 }}>
+                  {suspect.note}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 

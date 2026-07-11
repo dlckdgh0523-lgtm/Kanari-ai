@@ -47,6 +47,7 @@ export interface Project {
   id: number;
   name: string;
   discordWebhookUrl: string | null;
+  repoUrl: string | null;
   createdAt: string;
 }
 

@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MoreThan, Repository } from 'typeorm';
 import { SyntheticCheck } from '../checks/synthetic-check.entity';
+import { SuspectService } from '../grouping/suspect.service';
 import { ProjectsService } from '../projects/projects.service';
 import { ErrorEvent } from './error-event.entity';
 import { ErrorGroup } from './error-group.entity';
@@ -16,7 +17,31 @@ export class EventsService {
     @InjectRepository(SyntheticCheck)
     private readonly checkRepo: Repository<SyntheticCheck>,
     private readonly projectsService: ProjectsService,
+    private readonly suspectService: SuspectService,
   ) {}
+
+  // 이 에러의 범인 찾기: 스택 위치 -> GitHub 코드 링크 + 그 파일 최근 커밋.
+  // GitHub API를 부르므로 그룹 상세와 분리한 별도 엔드포인트로 둔다 (버튼 눌렀을 때만)
+  async findSuspect(groupId: number, userId: number) {
+    const group = await this.groupRepo.findOneBy({ id: groupId });
+    if (!group) throw new NotFoundException(`group ${groupId} not found`);
+    const project = await this.projectsService.assertOwner(
+      group.projectId,
+      userId,
+    );
+
+    // 대표 스택은 가장 최근 이벤트에서 가져온다
+    const latest = await this.eventRepo.findOne({
+      where: { groupId },
+      order: { occurredAt: 'DESC' },
+    });
+
+    return this.suspectService.findSuspect(
+      latest?.stack ?? null,
+      project.repoUrl,
+      latest?.release ?? group.firstRelease,
+    );
+  }
 
   // 프로젝트 통합 개요: 한 화면에서 서비스 건강 상태를 보여준다.
   // 여러 페이지에 흩어진 핵심 숫자를 여기 한 번에 모은다

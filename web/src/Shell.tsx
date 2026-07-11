@@ -11,13 +11,16 @@ export function Shell() {
   return (
     <>
       <div className="statusbar">
-        <Link to="/">
+        <Link to="/console">
           <span className="host">kanari</span>
           <span className="dim">@console</span>
         </Link>
         <span className="sep">│</span>
         <span className="dim">연결됨</span>
         <span className="right">
+          <Link to="/" className="dim">
+            소개
+          </Link>
           <span className="dim">{email}</span>
           <a
             href="/login"

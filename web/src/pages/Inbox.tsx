@@ -40,7 +40,11 @@ export function Inbox() {
             {s === 'open' ? '열림' : s === 'resolved' ? '해결됨' : '전체'}
           </button>
         ))}
-        <Link to={`/projects/${projectId}/logs`} style={{ marginLeft: 'auto' }} className="dim">
+        <Link
+          to={`/console/projects/${projectId}/logs`}
+          style={{ marginLeft: 'auto' }}
+          className="dim"
+        >
           로그 스트림 →
         </Link>
       </div>
@@ -60,7 +64,7 @@ export function Inbox() {
             {groups.map((g) => (
               <tr key={g.id} className="row">
                 <td>
-                  <Link to={`/groups/${g.id}`}>
+                  <Link to={`/console/groups/${g.id}`}>
                     <span className="danger">{g.name}</span>{' '}
                     <span>{g.message.slice(0, 80)}</span>
                   </Link>

@@ -87,7 +87,7 @@ export function Projects() {
             {projects.map((p) => (
               <tr key={p.id} className="row">
                 <td>
-                  <Link to={`/projects/${p.id}/groups`}>
+                  <Link to={`/console/projects/${p.id}/groups`}>
                     <span className="count">{p.name}</span>
                   </Link>
                 </td>
@@ -103,7 +103,7 @@ export function Projects() {
                   <button className="btn ghost" onClick={() => saveWebhook(p.id)}>
                     웹훅 설정
                   </button>{' '}
-                  <Link to={`/projects/${p.id}/logs`} className="dim">
+                  <Link to={`/console/projects/${p.id}/logs`} className="dim">
                     로그 보기 →
                   </Link>
                 </td>

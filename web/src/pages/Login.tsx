@@ -12,6 +12,24 @@ export function Login() {
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
 
+  // 둘러보기용 테스트 계정. 데모 데이터가 미리 들어 있다
+  async function demoLogin() {
+    setError('');
+    setBusy(true);
+    try {
+      const res = await api<{ token: string; email: string }>('/auth/login', {
+        method: 'POST',
+        body: { email: 'demo@kanari.dev', password: 'kanari-demo' },
+      });
+      setSession(res.token, res.email);
+      navigate('/console');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '요청 실패');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function submit(e: FormEvent) {
     e.preventDefault();
     setError('');
@@ -22,7 +40,7 @@ export function Login() {
         { method: 'POST', body: { email, password } },
       );
       setSession(res.token, res.email);
-      navigate('/');
+      navigate('/console');
     } catch (err) {
       setError(err instanceof Error ? err.message : '요청 실패');
     } finally {
@@ -61,7 +79,7 @@ export function Login() {
             required
           />
           {error && <div className="error-text">{error}</div>}
-          <div style={{ marginTop: 18, display: 'flex', gap: 10 }}>
+          <div style={{ marginTop: 18, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <button className="btn" disabled={busy}>
               {mode === 'login' ? '로그인' : '가입하기'}
             </button>
@@ -71,6 +89,17 @@ export function Login() {
               onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
             >
               {mode === 'login' ? '처음이에요' : '계정이 있어요'}
+            </button>
+          </div>
+          <div style={{ marginTop: 14, borderTop: '1px solid var(--coal-2)', paddingTop: 14 }}>
+            <button
+              type="button"
+              className="btn ghost"
+              onClick={demoLogin}
+              disabled={busy}
+              style={{ width: '100%' }}
+            >
+              가입 없이 테스트 계정으로 둘러보기
             </button>
           </div>
         </form>

@@ -5,14 +5,17 @@ import './styles.css';
 import { Shell } from './Shell';
 import { GroupDetail } from './pages/GroupDetail';
 import { Inbox } from './pages/Inbox';
+import { Landing } from './pages/Landing';
 import { LogStream } from './pages/LogStream';
 import { Login } from './pages/Login';
 import { Projects } from './pages/Projects';
 
+// 흐름: 랜딩(/) -> 로그인(/login) -> 콘솔(/console/...)
 const router = createBrowserRouter([
+  { path: '/', element: <Landing /> },
   { path: '/login', element: <Login /> },
   {
-    path: '/',
+    path: '/console',
     element: <Shell />, // 상단 상태바 + 로그인 확인
     children: [
       { index: true, element: <Projects /> },

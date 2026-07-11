@@ -160,6 +160,80 @@ logger.add(new KanariTransport({
           </div>
         </section>
 
+        {/* ---------- 어떤 기술로 어떻게 잡는지 ---------- */}
+        <section>
+          <div className="prompt-line">
+            <span className="chevron">❯</span>
+            <span className="cmd">kanari internals</span>
+            <span className="dim"> # 어떤 기술로 어떻게 잡아내나</span>
+          </div>
+          <div className="features">
+            <div className="panel">
+              <b>스택트레이스 지문으로 묶습니다</b>
+              <p className="dim">
+                에러의 호출 경로에서 행 번호와 라이브러리 내부 프레임을 지우고
+                남은 뼈대를 해시합니다. 배포로 줄 번호가 밀려도, 주문번호처럼
+                매번 바뀌는 값이 섞여도 같은 원인은 같은 그룹이 됩니다.
+              </p>
+            </div>
+            <div className="panel">
+              <b>받는 곳과 처리하는 곳을 분리합니다</b>
+              <p className="dim">
+                수집 API는 이벤트를 받아 Kafka에 넣기만 하고 즉시 응답합니다.
+                그룹핑과 분석은 별도 워커가 자기 속도로 처리해서, 에러가
+                폭주해도 수집이 밀리지 않습니다.
+              </p>
+            </div>
+            <div className="panel">
+              <b>급증은 기준선과 비교해 판단합니다</b>
+              <p className="dim">
+                1분마다 최근 5분 발생량을 직전 1시간의 평균과 비교합니다.
+                절대량과 상대량을 둘 다 넘을 때만 울려서, 알람이 양치기 소년이
+                되는 것을 막습니다. 같은 급증은 30분에 한 번만 알립니다.
+              </p>
+            </div>
+            <div className="panel">
+              <b>합성 테스트가 밖에서 두드립니다</b>
+              <p className="dim">
+                등록한 핵심 API를 5분마다 실제로 호출해 응답을 검증합니다.
+                일시적 흔들림 오탐을 막으려 연속 2회 실패에만 알람을 보내고,
+                살아나면 회복 알림을 보냅니다.
+              </p>
+            </div>
+          </div>
+          <p className="dim" style={{ marginTop: 14, fontSize: 13 }}>
+            만든 재료: NestJS · TypeScript · Kafka · MySQL · Winston SDK ·
+            Docker · Grafana + Loki + Prometheus (카나리 자신의 관측)
+          </p>
+        </section>
+
+        {/* ---------- 정직한 경계 ---------- */}
+        <section>
+          <div className="prompt-line">
+            <span className="chevron">❯</span>
+            <span className="cmd">kanari scope</span>
+            <span className="dim"> # 잡는 것과 못 잡는 것</span>
+          </div>
+          <div className="features">
+            <div className="panel">
+              <b style={{ color: 'var(--ok)' }}>잡습니다</b>
+              <p className="dim">
+                서버 코드의 error·warn 로그 전부, try/catch를 놓친 예외
+                (captureGlobalErrors), 같은 에러의 급증, 그리고 200을 주면서도
+                내용이 깨진 장애(합성 테스트).
+              </p>
+            </div>
+            <div className="panel">
+              <b style={{ color: 'var(--warn)' }}>못 잡습니다</b>
+              <p className="dim">
+                브라우저에서 나는 프론트엔드 에러, 에러 없이 느려지기만 하는
+                성능 저하, 디스크나 메모리 같은 인프라 지표. 이건 APM과
+                메트릭의 영역이라 정직하게 선을 긋습니다.
+              </p>
+            </div>
+          </div>
+        </section>
+
         <footer className="landing-footer dim">
           kanari · 에러 관제 서비스 ·{' '}
           <a

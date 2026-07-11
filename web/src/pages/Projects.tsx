@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
@@ -12,6 +12,9 @@ export function Projects() {
   const [name, setName] = useState('');
   const [issuedKey, setIssuedKey] = useState<{ name: string; key: string } | null>(null);
   const [error, setError] = useState('');
+  // 웹훅 인라인 편집. window.prompt는 임베디드 브라우저에서 차단되는 경우가 있어 쓰지 않는다
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [webhookInput, setWebhookInput] = useState('');
 
   async function load() {
     setProjects(await api<Project[]>('/projects'));
@@ -36,12 +39,18 @@ export function Projects() {
     }
   }
 
-  async function saveWebhook(projectId: number) {
-    const url = window.prompt('Discord 웹훅 URL (비우면 해제)') ?? '';
-    await api(`/projects/${projectId}/webhook`, {
+  function openWebhookEditor(p: Project) {
+    setEditingId(p.id);
+    setWebhookInput(p.discordWebhookUrl ?? '');
+  }
+
+  async function saveWebhook() {
+    if (editingId === null) return;
+    await api(`/projects/${editingId}/webhook`, {
       method: 'PATCH',
-      body: { discordWebhookUrl: url },
+      body: { discordWebhookUrl: webhookInput },
     });
+    setEditingId(null);
     await load();
   }
 
@@ -85,29 +94,56 @@ export function Projects() {
           </thead>
           <tbody>
             {projects.map((p) => (
-              <tr key={p.id} className="row">
-                <td>
-                  <Link to={`/console/projects/${p.id}/groups`}>
-                    <span className="count">{p.name}</span>
-                  </Link>
-                </td>
-                <td>
-                  {p.discordWebhookUrl ? (
-                    <span className="badge ok">Discord 연결됨</span>
-                  ) : (
-                    <span className="badge unknown">알림 없음</span>
-                  )}
-                </td>
-                <td className="dim">{p.createdAt.slice(0, 10)}</td>
-                <td>
-                  <button className="btn ghost" onClick={() => saveWebhook(p.id)}>
-                    웹훅 설정
-                  </button>{' '}
-                  <Link to={`/console/projects/${p.id}/logs`} className="dim">
-                    로그 보기 →
-                  </Link>
-                </td>
-              </tr>
+              <Fragment key={p.id}>
+                <tr className="row">
+                  <td>
+                    <Link to={`/console/projects/${p.id}/groups`}>
+                      <span className="count">{p.name}</span>
+                    </Link>
+                  </td>
+                  <td>
+                    {p.discordWebhookUrl ? (
+                      <span className="badge ok">Discord 연결됨</span>
+                    ) : (
+                      <span className="badge unknown">알림 없음</span>
+                    )}
+                  </td>
+                  <td className="dim">{p.createdAt.slice(0, 10)}</td>
+                  <td>
+                    <button className="btn ghost" onClick={() => openWebhookEditor(p)}>
+                      웹훅 설정
+                    </button>{' '}
+                    <Link to={`/console/projects/${p.id}/logs`} className="dim">
+                      로그 보기 →
+                    </Link>
+                  </td>
+                </tr>
+                {editingId === p.id && (
+                  <tr>
+                    <td colSpan={4}>
+                      <label htmlFor={`wh-${p.id}`}>
+                        Discord 웹훅 URL — 서버 설정 → 연동 → 웹훅에서 만들 수
+                        있습니다. 비우고 저장하면 알림이 꺼집니다
+                      </label>
+                      <div style={{ display: 'flex', gap: 10 }}>
+                        <input
+                          id={`wh-${p.id}`}
+                          value={webhookInput}
+                          onChange={(e) => setWebhookInput(e.target.value)}
+                          placeholder="https://discord.com/api/webhooks/..."
+                          autoFocus
+                        />
+                        <button className="btn" onClick={saveWebhook} style={{ whiteSpace: 'nowrap' }}>
+                          저장
+                        </button>
+                        <button className="btn ghost" onClick={() => setEditingId(null)}>
+                          취소
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
             ))}
           </tbody>
         </table>

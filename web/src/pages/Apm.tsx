@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { api } from '../api';
-import { Prompt } from '../Shell';
 
 interface RouteRow {
   key: string;
@@ -61,18 +60,6 @@ export function Apm() {
 
   return (
     <>
-      <Prompt cmd="apm" arg={`--project ${projectId} --window 1h`} />
-
-      <div style={{ marginBottom: 14, display: 'flex', gap: 8 }}>
-        <Link
-          to={`/console/projects/${projectId}/groups`}
-          style={{ marginLeft: 'auto' }}
-          className="dim"
-        >
-          에러 인박스 →
-        </Link>
-      </div>
-
       <div className="panel">
         <div className="dim" style={{ marginBottom: 8 }}>
           라우트별 성능 (최근 1시간 · 15초마다 갱신)

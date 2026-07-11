@@ -38,8 +38,18 @@ class CreateCheckDto {
   url: string;
 
   @IsOptional()
-  @IsIn(['GET', 'POST', 'HEAD'])
+  @IsIn(['GET', 'POST', 'HEAD', 'PUT', 'PATCH', 'DELETE'])
   method?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  requestHeaders?: string; // JSON: {"authorization":"Bearer ..."}
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(4000)
+  requestBody?: string;
 
   @IsOptional()
   @IsInt()

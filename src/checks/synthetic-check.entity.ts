@@ -32,6 +32,14 @@ export class SyntheticCheck {
   @Column({ default: 200 })
   expectedStatus: number;
 
+  // POST/PUT 등에 실어 보낼 요청 헤더와 바디 (JSON 문자열). 인증이 필요한
+  // 엔드포인트를 감시할 때 토큰 헤더를 넣는 용도. null이면 안 보낸다
+  @Column({ type: 'text', nullable: true })
+  requestHeaders: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  requestBody: string | null;
+
   // 실행 주기(초). 기본 5분. 실무 사례에서 확인한 값이다 (핑보다 촘촘할 필요는 없다)
   @Column({ default: 300 })
   intervalSec: number;

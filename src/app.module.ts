@@ -8,6 +8,7 @@ import { IngestModule } from './ingest/ingest.module';
 import { EventsModule } from './events/events.module';
 import { ApmModule } from './apm/apm.module';
 import { AuthModule } from './auth/auth.module';
+import { DiagnosticsModule } from './diagnostics/diagnostics.module';
 import { ChecksModule } from './checks/checks.module';
 import { MetricsModule } from './metrics/metrics.module';
 
@@ -39,6 +40,7 @@ import { MetricsModule } from './metrics/metrics.module';
     ChecksModule,
     MetricsModule,
     ApmModule,
+    DiagnosticsModule,
   ],
   providers: [
     // 레이트리밋을 모든 라우트에 기본 적용한다

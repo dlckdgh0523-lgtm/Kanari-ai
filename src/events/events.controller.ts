@@ -29,6 +29,15 @@ type AuthedRequest = { user: { id: number; email: string } };
 export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
+  // GET /projects/1/overview - 통합 개요 (프로젝트 첫 화면)
+  @Get('projects/:projectId/overview')
+  overview(
+    @Param('projectId', ParseIntPipe) projectId: number,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.eventsService.overview(projectId, req.user.id);
+  }
+
   // GET /projects/1/groups?status=open
   @Get('projects/:projectId/groups')
   findGroups(

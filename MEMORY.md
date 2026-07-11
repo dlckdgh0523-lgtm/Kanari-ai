@@ -98,12 +98,22 @@ Node.js 서비스용 에러 관제 SaaS. SDK(Winston transport)로 에러를 모
 - [x] APM (26-07-11): SDK KanariMetrics 미들웨어(라우트별 60초 집계 + 분포 버킷, 1초 초과는 개별 샘플, 실제 경로 아닌 라우트 패턴으로 카디널리티 제어) → POST /ingest/metrics → 별도 Kafka 토픽(kanari.metrics.raw, 에러 처리를 안 막게 분리) → route_stats/slow_samples 저장 → 성능 워치독(p95 300ms 이상 AND 기준선 2.5배, 표본 20건 이상, 30분 쿨다운, 쿨다운은 메모리=워커 1대 트레이드오프) → 🐢 알람. 콘솔 /apm 화면(라우트 표+느린 샘플, 15초 갱신). E2E: 25건 400ms 트래픽 → 집계 p95=500ms → 워치독 1분 내 발동 확인. SDK 0.4.0 (publish는 창호)
 - 경계 확정: 라우트 레벨 APM까지가 카나리. 스팬/쿼리 단위 트레이싱은 OTel 영역 (랜딩 scope 섹션 갱신됨)
 
+- [x] 능동 진단 + 통합 UX (26-07-11):
+  - 보안 점검: HTTPS/보안헤더(HSTS·CSP·X-Frame 등)/서버버전노출/CORS와일드카드/스택트레이스유출. 요청 몇 개라 안전. E2E 확인(helmet 덕에 헤더 양호, http라 HTTPS만 위험)
+  - 부하 테스트: 동시요청 웨이브로 용량 측정(RPS·p95·실패율·판정). 가드레일 하드코딩(동시50·총500·10초) + DTO @Max로 이중 방어. E2E: 625RPS/p95 31ms 판정, 9999 요청은 400 거부
+  - 합성 테스트 전 메서드(GET/POST/PUT/PATCH/DELETE) + 헤더/바디 지원
+  - 통합 개요 화면: 건강배너 + 통계타일(열린에러/24h이벤트/체크실패/성능) + top에러 + 미니로그. GET /projects/:id/overview
+  - 프로젝트 탭 내비(개요/에러/로그/성능/합성/진단)로 UX 통합. 페이지별 중복 Prompt·링크 제거
+- 반대 결정 (26-07-11): 리버스 프록시(요청 경로에 카나리 끼우기)는 거부. fire-and-forget 원칙 위반(카나리 죽으면 사용자 서비스도 죽음). SDK 미들웨어가 경로 밖에서 같은 목적 달성
+- 개선 과제: 부하 테스트 대상 도메인 소유 검증(현재는 경고+가드레일만)
+
 ## 관련 링크
 
 - GitHub: github.com/dlckdgh0523-lgtm/Kanari-ai
 - 참고 리포: github.com/dlckdgh0523-lgtm/AI- (쇼핑 컨시어지 — 재사용할 패턴: 모델 다운시프트, 인용 검증, A/B 하네스)
 - 진로나침반: github.com/dlckdgh0523-lgtm/jinro-backend
 - 블로그(회고 올릴 곳): blog.naver.com/moodie_lv3
+
 
 
 

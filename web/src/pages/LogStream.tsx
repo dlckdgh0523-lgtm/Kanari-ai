@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../api';
 import type { ErrorEvent } from '../api';
-import { Prompt } from '../Shell';
 
 // 터미널 로그 뷰: tail -f 처럼 최근 이벤트가 아래로 흐른다.
 // 3초 주기 폴링 - 규모가 커지면 SSE로 바꾸는 것이 다음 개선 (이미 서버에 경험 있음)
@@ -40,8 +39,6 @@ export function LogStream() {
 
   return (
     <>
-      <Prompt cmd="tail" arg={`-f --project ${projectId}`} />
-
       <div
         className="term"
         ref={termRef}

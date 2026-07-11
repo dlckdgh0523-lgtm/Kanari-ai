@@ -216,6 +216,82 @@ pre.stack {
 
 .empty { color: var(--ink-dim); padding: 30px 0; text-align: center; }
 
+/* ---------- 프로젝트 탭 ---------- */
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--coal-2);
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.tab {
+  padding: 8px 16px;
+  color: var(--ink-dim);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.tab:hover { color: var(--ink); }
+.tab.active {
+  color: var(--canary);
+  border-bottom-color: var(--canary);
+}
+
+/* ---------- 건강 배너 ---------- */
+.health-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 6px;
+  border: 1px solid;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+.health-banner .dot { width: 9px; height: 9px; border-radius: 50%; }
+.health-banner.ok { border-color: var(--ok); color: var(--ok); }
+.health-banner.ok .dot { background: var(--ok); }
+.health-banner.warn { border-color: var(--warn); color: var(--warn); }
+.health-banner.warn .dot { background: var(--warn); }
+.health-banner.danger { border-color: var(--danger); color: var(--danger); }
+.health-banner.danger .dot { background: var(--danger); animation: pulse 1.4s infinite; }
+@keyframes pulse { 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { .health-banner.danger .dot { animation: none; } }
+
+/* ---------- 통계 타일 ---------- */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.stat {
+  background: var(--coal-1);
+  border: 1px solid var(--coal-2);
+  border-radius: 6px;
+  padding: 16px;
+  text-align: center;
+}
+a.stat:hover { border-color: var(--canary); }
+.stat-num { font-size: 26px; font-weight: bold; }
+.stat-num.danger { color: var(--danger); }
+.stat-num.canary { color: var(--canary); }
+.stat-label { color: var(--ink-dim); font-size: 12px; margin-top: 4px; }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.mini-row {
+  display: block;
+  padding: 6px 0;
+  border-top: 1px solid var(--coal-2);
+  font-size: 13px;
+}
+.mini-row:first-of-type { border-top: none; }
+.mini-row:hover { color: var(--canary); }
+
+@media (max-width: 700px) {
+  .stat-grid { grid-template-columns: 1fr 1fr; }
+  .two-col { grid-template-columns: 1fr; }
+}
+
 /* ---------- 랜딩 ---------- */
 .landing .cta-link { color: var(--canary); }
 .landing .cta-link:hover { text-decoration: underline; }

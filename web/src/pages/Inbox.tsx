@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../api';
 import type { ErrorGroup } from '../api';
-import { Prompt } from '../Shell';
 
 function timeAgo(iso: string) {
   const sec = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
@@ -27,8 +26,6 @@ export function Inbox() {
 
   return (
     <>
-      <Prompt cmd="groups" arg={`--project ${projectId} --status ${status || 'all'}`} />
-
       <div style={{ marginBottom: 14, display: 'flex', gap: 8 }}>
         {(['open', 'resolved', ''] as const).map((s) => (
           <button
@@ -40,19 +37,6 @@ export function Inbox() {
             {s === 'open' ? '열림' : s === 'resolved' ? '해결됨' : '전체'}
           </button>
         ))}
-        <Link
-          to={`/console/projects/${projectId}/apm`}
-          style={{ marginLeft: 'auto' }}
-          className="dim"
-        >
-          성능(APM)
-        </Link>
-        <Link to={`/console/projects/${projectId}/checks`} className="dim">
-          합성 테스트
-        </Link>
-        <Link to={`/console/projects/${projectId}/logs`} className="dim">
-          로그 스트림 →
-        </Link>
       </div>
 
       <div className="panel">

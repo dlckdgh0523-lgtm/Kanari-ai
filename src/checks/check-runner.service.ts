@@ -89,8 +89,23 @@ export class CheckRunnerService {
   private async execute(check: SyntheticCheck): Promise<CheckResult> {
     const startedAt = Date.now();
     try {
+      // 저장된 헤더/바디를 실어 보낸다. JSON 파싱이 깨지면 무시하고 진행한다
+      let headers: Record<string, string> | undefined;
+      if (check.requestHeaders) {
+        try {
+          headers = JSON.parse(check.requestHeaders);
+        } catch {
+          headers = undefined;
+        }
+      }
+
       const res = await fetch(check.url, {
         method: check.method,
+        headers,
+        body:
+          check.method === 'GET' || check.method === 'HEAD'
+            ? undefined
+            : (check.requestBody ?? undefined),
         // 5초 넘게 걸리는 응답은 사실상 장애로 본다
         signal: AbortSignal.timeout(5000),
       });

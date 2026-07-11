@@ -97,7 +97,7 @@ export function Projects() {
               <Fragment key={p.id}>
                 <tr className="row">
                   <td>
-                    <Link to={`/console/projects/${p.id}/groups`}>
+                    <Link to={`/console/projects/${p.id}`}>
                       <span className="count">{p.name}</span>
                     </Link>
                   </td>
@@ -109,19 +109,13 @@ export function Projects() {
                     )}
                   </td>
                   <td className="dim">{p.createdAt.slice(0, 10)}</td>
-                  <td>
+                  <td style={{ whiteSpace: 'nowrap' }}>
+                    <Link to={`/console/projects/${p.id}`} className="btn ghost">
+                      열기
+                    </Link>{' '}
                     <button className="btn ghost" onClick={() => openWebhookEditor(p)}>
                       웹훅 설정
-                    </button>{' '}
-                    <Link to={`/console/projects/${p.id}/apm`} className="dim">
-                      성능
-                    </Link>{' '}
-                    <Link to={`/console/projects/${p.id}/checks`} className="dim">
-                      합성 테스트
-                    </Link>{' '}
-                    <Link to={`/console/projects/${p.id}/logs`} className="dim">
-                      로그 →
-                    </Link>
+                    </button>
                   </td>
                 </tr>
                 {editingId === p.id && (

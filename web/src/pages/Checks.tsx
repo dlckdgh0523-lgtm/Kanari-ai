@@ -1,9 +1,8 @@
 import { Fragment, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { api } from '../api';
 import type { SyntheticCheck } from '../api';
-import { Prompt } from '../Shell';
 
 interface RunResult {
   checkId: number;
@@ -82,19 +81,10 @@ export function Checks() {
 
   return (
     <>
-      <Prompt cmd="checks" arg={`--project ${projectId}`} />
-
       <div style={{ marginBottom: 14, display: 'flex', gap: 8 }}>
         <button className="btn ghost" onClick={runAll} disabled={busyId !== null}>
           {busyId === 'all' ? '실행 중...' : '전부 지금 실행 (배포 스모크)'}
         </button>
-        <Link
-          to={`/console/projects/${projectId}/groups`}
-          style={{ marginLeft: 'auto' }}
-          className="dim"
-        >
-          에러 인박스 →
-        </Link>
       </div>
 
       <div className="panel">
